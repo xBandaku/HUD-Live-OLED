@@ -54,21 +54,19 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md), [SECURITY.md](../SECURITY.md), and th
 [review guide](../.github/REVIEW_GUIDE.md). Reviewers should check Windows resource
 lifecycle, telemetry deadlines, profile persistence, OLED behavior, and packaging.
 
-## Sponsorship still needs an owner-provided destination
+## Sponsorship
 
-The `xBandaku` account did not have an active GitHub Sponsors listing when setup
-was checked. Enroll at https://github.com/sponsors/accounts and complete the
-account, payout, and tax steps yourself, or provide an existing funding page.
+The owner selected https://paypal.me/xWandaku as the funding destination.
+`.github/FUNDING.yml` configures this as a custom link. GitHub will display the
+repository's Sponsor button after this file is merged into the default branch.
 
-Once the destination is approved, copy `.github/FUNDING.yml.example` to
-`.github/FUNDING.yml`, add the real username or URL, and submit it through a PR.
-The Sponsor button is configured from the default branch. The example alone does
-not activate it, and no placeholder payment destination is published.
+No GitHub Sponsors enrollment is required for this custom PayPal link. This
+configuration links to the owner's funding page; it does not create a payment,
+subscription, or payout account.
 
 ## Remaining owner decisions
 
 - Choose a license before describing the repository as open source; public
   visibility alone does not grant a general reuse license.
-- Provide the sponsorship destination.
 - Publish a versioned GitHub Release when a build is ready for users. Publishing
   a release triggers packaging and attachment of the ZIP and checksum.
