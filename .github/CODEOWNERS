@@ -1,0 +1,3 @@
+# Both maintainers can review the entire repository.
+# GitHub excludes the PR author when automatically requesting code-owner reviews.
+* @xBandaku @ricorevere

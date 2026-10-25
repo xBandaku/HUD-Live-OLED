@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a reproducible problem with HUD Live OLED.
+title: '[Bug]: '
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Include the expected behavior and what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps, including the profile or settings involved.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: HUD version
+      placeholder: '16.1.0'
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Windows and hardware
+      description: Windows version, GPU model, monitor count/resolutions/scaling, and WebView2 version if known.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Screenshots and relevant log excerpts
+      description: Logs are in %LOCALAPPDATA%\HudWall. Remove usernames, paths, and other private information before posting. Report security vulnerabilities privately through the Security tab.

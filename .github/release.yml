@@ -1,0 +1,12 @@
+changelog:
+  exclude:
+    labels: [skip-changelog]
+  categories:
+    - title: New features
+      labels: [enhancement]
+    - title: Fixes
+      labels: [bug]
+    - title: Dependencies and build tooling
+      labels: [dependencies, github-actions]
+    - title: Other changes
+      labels: ['*']
