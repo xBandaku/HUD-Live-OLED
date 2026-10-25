@@ -1,0 +1,58 @@
+# .NET build and publish output
+**/bin/
+**/obj/
+/publish/
+/artifacts/
+*.dll
+*.exe
+*.pdb
+*.deps.json
+*.runtimeconfig.json
+
+# Runtime files bundled in the extracted Windows distribution
+/runtimes/
+/cs/
+/de/
+/es/
+/fr/
+/it/
+/ja/
+/ko/
+/pl/
+/pt-BR/
+/ru/
+/tr/
+/zh-Hans/
+/zh-Hant/
+/Microsoft.Web.WebView2.*.xml
+
+# IDE and user-specific files
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local settings, WebView2 profiles, diagnostics, and backups
+/assets/monitors.json
+/assets/monitor-colors/
+**/WebView2/
+**/*.WebView2/
+*.log
+*.dmp
+*.bak
+*.tmp
+
+# Local secrets and operating-system metadata
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+Thumbs.db
+.DS_Store
+
+# Release archives
+*.zip
+*.7z

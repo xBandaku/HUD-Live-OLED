@@ -1,0 +1,1 @@
+window.HUD_EDITION="OLED";

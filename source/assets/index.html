@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J.A.R.V.I.S.</title><script src="edition.js"></script><script src="user.js"></script><script src="colors.js"></script><script src="temperature.js"></script>
+<style>
+  :root{
+    --bg-1:#050409;
+    --bg-2:#0d0710;
+    --bg-3:#160b18;
+    --accent:#a93f68;
+    --accent-2:#ce8fa3;
+    --text:#ece2e7;
+    --dim:#8b7b84;
+    --dim-2:#5d4f56;
+    --ok:#7fd6a8;
+    --warn:#e0b070;
+    --bad:#e07070;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;}
+  body{
+    background:var(--bg-1);
+    color:var(--text);
+    font-family:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+    overflow:hidden;cursor:none;user-select:none;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* one unit per physical display */
+  #wall{position:fixed;inset:0;display:flex;}
+  .unit{position:relative;flex:1 1 0;overflow:hidden;background:var(--bg-1);}
+  .frame{
+    position:absolute;left:50%;top:50%;
+    width:2560px;height:1440px;
+    transform:translate(-50%,-50%) scale(var(--s,1));
+    transform-origin:center center;
+  }
+
+  .stage{
+    position:absolute;inset:0;
+    padding:56px 68px 44px;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    gap:26px;
+  }
+
+  .bg{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(1200px 760px at 50% 44%, var(--bg-3) 0%, transparent 62%),
+      radial-gradient(900px 620px at 12% 92%, rgba(var(--accent-rgb),.10) 0%, transparent 58%),
+      radial-gradient(900px 620px at 92% 8%, rgba(var(--accent-2-rgb),.07) 0%, transparent 55%),
+      linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 58%, var(--bg-1) 100%);
+  }
+  .fx{position:absolute;inset:0;pointer-events:none;}
+  .fx.grid{
+    background-image:
+      linear-gradient(to right, rgba(var(--accent-2-rgb),.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(var(--accent-2-rgb),.035) 1px, transparent 1px);
+    background-size:96px 96px;
+    mask-image:radial-gradient(circle at 50% 48%, #000 0%, transparent 78%);
+    -webkit-mask-image:radial-gradient(circle at 50% 48%, #000 0%, transparent 78%);
+  }
+  .fx.vignette{background:radial-gradient(circle at 50% 48%, transparent 42%, rgba(0,0,0,.62) 100%);}
+  .fx.scan{
+    background:repeating-linear-gradient(to bottom, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    mix-blend-mode:overlay;opacity:.55;
+  }
+  .fx.aura{
+    background:radial-gradient(760px 560px at 50% 46%, rgba(var(--accent-rgb),.42), transparent 70%);
+    opacity:.14;
+  }
+
+  /* ---------------- top bar ---------------- */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:24px;}
+  .brand{display:flex;align-items:center;gap:14px;}
+  .mark{
+    width:11px;height:11px;border-radius:2px;background:var(--accent);
+    box-shadow:0 0 18px rgba(var(--accent-rgb),.95), 0 0 42px rgba(var(--accent-rgb),.45);
+    animation:pulse 3.4s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+  .brand h1{font-size:15px;font-weight:600;letter-spacing:.42em;text-transform:uppercase;}
+  .brand h1 span{color:var(--accent-2);font-weight:300;}
+  .brand .subline{font-size:10.5px;letter-spacing:.24em;color:var(--dim-2);text-transform:uppercase;margin-top:3px;}
+
+  .chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+  .chip{
+    display:flex;align-items:center;gap:9px;padding:8px 15px;border-radius:999px;
+    border:1px solid rgba(var(--accent-2-rgb),.16);
+    background:rgba(255,255,255,.022);
+    font-size:10.5px;letter-spacing:.19em;text-transform:uppercase;
+    color:var(--dim);white-space:nowrap;
+  }
+  .chip b{color:var(--text);font-weight:600;letter-spacing:.05em;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--dim-2);}
+  .dot.on{background:var(--ok);box-shadow:0 0 10px rgba(127,214,168,.85);}
+  .dot.warn{background:var(--warn);box-shadow:0 0 10px rgba(224,176,112,.8);}
+  .dot.bad{background:var(--bad);box-shadow:0 0 10px rgba(224,112,112,.8);}
+
+  .clockmeta{text-align:right;}
+  .clockmeta .day{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent-2);}
+  .clockmeta .date{font-size:12px;letter-spacing:.16em;color:var(--dim);margin-top:5px;}
+
+  /* ---------------- main ---------------- */
+  .main{
+    display:grid;
+    grid-template-columns:420px minmax(0,1fr) 420px;
+    gap:44px;align-items:center;min-height:0;
+  }
+
+  .panel{
+    border:1px solid rgba(var(--accent-2-rgb),.13);border-radius:16px;
+    background:linear-gradient(180deg, rgba(var(--background-rgb),.62) 0%, rgba(var(--background-rgb),.42) 100%);
+    padding:22px 24px;position:relative;overflow:hidden;
+  }
+  .panel::before{
+    content:"";position:absolute;left:0;top:0;height:2px;width:74px;
+    background:linear-gradient(90deg,var(--accent),transparent);
+  }
+  .panel h2{
+    font-size:10px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--dim-2);margin-bottom:16px;display:flex;justify-content:space-between;
+  }
+  .panel h2 em{font-style:normal;color:var(--accent-2);opacity:.75;}
+
+  .spec{display:flex;flex-direction:column;gap:4px;padding-bottom:13px;border-bottom:1px solid rgba(var(--accent-2-rgb),.07);}
+  .spec:last-child{border-bottom:none;padding-bottom:0;}
+  .spec .k{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim-2);}
+  .spec .v{font-size:15px;font-weight:350;line-height:1.3;letter-spacing:.01em;}
+  .spec .v small{font-size:11px;color:var(--dim);letter-spacing:.06em;font-weight:400;}
+
+  .gauge{margin-bottom:19px;}
+  .gauge:last-child{margin-bottom:0;}
+  .gauge .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
+  .gauge .name{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);}
+  .gauge .val{font-size:19px;font-weight:300;}
+  .gauge .val i{font-style:normal;font-size:10px;color:var(--dim-2);margin-left:3px;letter-spacing:.1em;}
+  .track{height:4px;border-radius:3px;background:rgba(255,255,255,.055);overflow:hidden;}
+  .fill{
+    height:100%;width:0%;border-radius:3px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    box-shadow:0 0 14px rgba(var(--accent-rgb),.75);
+    transition:width .45s cubic-bezier(.2,.8,.2,1);
+  }
+  .fill.cool{background:linear-gradient(90deg,#4f6f8f,#9fc0d8);box-shadow:0 0 14px rgba(120,160,200,.5);}
+
+  .sub{font-size:11.5px;color:var(--dim);letter-spacing:.07em;}
+  .sub b{color:var(--accent-2);font-weight:500;}
+
+  .cores{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;margin-top:14px;}
+  .cores i{display:block;height:26px;border-radius:2px;background:rgba(var(--accent-2-rgb),.10);transition:background .4s, box-shadow .4s;}
+
+  /* ---------------- center ---------------- */
+  .center{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-width:0;}
+  .ringwrap{position:relative;width:520px;height:520px;display:flex;align-items:center;justify-content:center;}
+  .ring{position:absolute;inset:0;transform:rotate(-90deg);overflow:visible;}
+  .ring .trk{fill:none;stroke:rgba(var(--accent-2-rgb),.09);stroke-width:1.5;}
+  .ring .sec{fill:none;stroke:var(--accent-2);stroke-width:2;stroke-linecap:round;
+    filter:drop-shadow(0 0 9px rgba(var(--accent-2-rgb),.8));transition:stroke-dashoffset .3s linear;}
+  .ring .bass{fill:none;stroke:var(--accent);stroke-width:1;
+    filter:drop-shadow(0 0 14px rgba(var(--accent-rgb),.9));}
+
+  .clock{text-align:center;z-index:2;}
+  .clock .time{
+    font-size:148px;font-weight:200;line-height:.9;letter-spacing:-.02em;color:var(--text);
+    text-shadow:0 0 60px rgba(var(--accent-rgb),.55), 0 0 130px rgba(var(--accent-rgb),.28);
+    white-space:nowrap;
+  }
+  .clock .time .sep{opacity:.34;margin:0 -6px;font-weight:100;}
+  .clock .time .ss{font-size:52px;font-weight:200;color:var(--accent-2);margin-left:10px;}
+  .clock .zone{margin-top:14px;font-size:10.5px;letter-spacing:.4em;text-transform:uppercase;color:var(--dim-2);}
+  .clock .meridiem{font-size:12px;letter-spacing:.3em;color:var(--accent-2);margin-left:8px;}
+
+  .meta-row{display:flex;gap:38px;margin-top:30px;justify-content:center;}
+  .meta-row div{text-align:center;}
+  .meta-row .k{font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:var(--dim-2);margin-bottom:6px;}
+  .meta-row .v{font-size:15px;font-weight:350;}
+  .meta-row .v small{font-size:10px;color:var(--dim);}
+
+  /* ---------------- audio ---------------- */
+  .audio{display:flex;flex-direction:column;gap:9px;min-height:0;}
+  .audio .bar-head{display:flex;justify-content:space-between;align-items:baseline;}
+  .audio .bar-head .lbl{font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim-2);}
+  .audio .bar-head .stat{font-size:10px;letter-spacing:.2em;color:var(--accent-2);text-transform:uppercase;}
+  canvas.spec{width:100%;height:132px;display:block;}
+
+  .foot{display:flex;justify-content:space-between;align-items:center;font-size:9.5px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--dim-2);}
+  .foot .mid{color:var(--dim);}
+
+  /* offline state */
+  .unit.offline .spec .v,
+  .unit.offline .gauge .val,
+  .unit.offline .meta-row .v{opacity:.45;}
+  .unit.offline .fill{filter:grayscale(.7);opacity:.5;}
+  .unit[data-paused="true"] *, html[data-motion="Reduced"] *, html[data-motion="Off"] *, html[data-playback-paused="true"] * {
+    transition: none !important; animation: none !important;
+  }
+  .unit[data-oled="true"] { background:#000; }
+  .unit[data-oled="true"] .bg { background:#000 !important; }
+  .unit[data-oled="true"] .fx { display:none !important; }
+  .unit[data-oled="true"] .panel { background:transparent !important; }
+  .unit[data-oled="true"] * { box-shadow:none !important; text-shadow:none !important; filter:none !important; }
+  .unit[data-oled="true"] .frame { will-change:transform; }
+  html[data-transparent-host="true"], html[data-transparent-host="true"] body { background:transparent !important; }
+  .unit[data-transparent="true"] { background:transparent !important; }
+  .unit[data-transparent="true"] .bg, .unit[data-transparent="true"] .fx { display:none !important; }
+  .unit[data-transparent="true"] .panel { background:transparent !important; }
+
+  /* Full-screen JARVIS console. The viewport stays fixed; information modules drift inside safe margins. */
+  .stage{padding:60px 72px 48px;grid-template-rows:auto minmax(0,1fr) 100px 230px;gap:28px;}
+  .stage > *{transform:translate(var(--oled-shift-x,0px),var(--oled-shift-y,0px));}
+  .unit{--dim:#b6cdd9;--dim-2:#99b2c2;}
+  .brand h1{font-size:24px;letter-spacing:.28em;font-weight:650;}
+  .brand .subline{font-size:13px;letter-spacing:.17em;}
+  .mark{width:18px;height:18px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);border-radius:0;}
+  .main{grid-template-columns:minmax(360px,440px) minmax(0,1fr) minmax(360px,440px);gap:48px;}
+  .panel{border-radius:3px;border-color:rgba(var(--accent-2-rgb),.52);padding:28px;}
+  .panel::before{width:110px;height:3px;}
+  .panel h2{font-size:14px;letter-spacing:.18em;margin-bottom:22px;}
+  .spec{padding-bottom:16px;gap:7px;}.spec .k,.gauge .name{font-size:13px;letter-spacing:.14em;}
+  .spec .v{font-size:20px;font-weight:500;}.spec .v small,.sub{font-size:15px;}
+  .gauge{margin-bottom:24px;}.gauge .val{font-size:27px;font-weight:500;}.track{height:6px;}
+  .chip{font-size:13px;border-radius:3px;}.clockmeta .day,.clockmeta .date{font-size:15px;}
+  .ringwrap{width:600px;height:600px;}.ring{inset:40px;width:520px;height:520px;}
+  .reactor{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:var(--accent);stroke-width:2;opacity:.8;}
+  .reactor .segments{stroke-width:7;stroke-dasharray:95 22 12 22;}.reactor .ticks{stroke-width:9;stroke-dasharray:2 12;}
+  .reactor-outer{animation:orbit 90s linear infinite;}.reactor-inner{animation:orbit 65s linear reverse infinite;opacity:.45;}
+  @keyframes orbit{to{transform:rotate(360deg)}}
+  .core-label{text-align:center;font-size:28px;letter-spacing:.38em;color:var(--accent-2);font-weight:600;margin-bottom:20px;}
+  .core-label span{display:block;font-size:12px;letter-spacing:.3em;color:var(--dim);margin-top:10px;}
+  .core-caption{font-size:13px;letter-spacing:.24em;color:var(--dim);margin-top:15px;}
+  .clock .time{font-size:134px;font-weight:400;}.clock .zone{font-size:13px;letter-spacing:.22em;}
+  .meta-row{gap:38px;margin-top:22px;}.meta-row .k{font-size:12px;}.meta-row .v{font-size:21px;}
+  .history-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;}
+  .history-card{border-top:1px solid rgba(var(--accent-rgb),.5);padding:12px 18px;position:relative;}
+  .history-card span{font-size:12px;letter-spacing:.2em;color:var(--dim);}
+  .history-card svg{display:block;width:100%;height:48px;margin-top:8px;overflow:hidden;}
+  .history-card polyline{fill:none;stroke:var(--accent-2);stroke-width:2;vector-effect:non-scaling-stroke;}
+  canvas.spec{height:120px;} .audio{gap:12px;} .foot{flex-shrink:0;}
+  .audio .bar-head .lbl,.audio .bar-head .stat,.foot{font-size:13px;letter-spacing:.14em;}
+  .unit[data-transparent="true"]{color:#f1f8ff;--text:#f1f8ff;--dim:#cfdeeb;--dim-2:#b7cedd;}
+  .unit[data-transparent="true"] .panel,
+  .unit[data-transparent="true"] .top,
+  .unit[data-transparent="true"] .history-card,
+  .unit[data-transparent="true"] .audio{background:rgba(2,10,18,.88)!important;border:1px solid rgba(var(--accent-rgb),.65);}
+  .unit[data-transparent="true"] .top{padding:18px 22px;}
+  .unit[data-transparent="true"] .audio{padding:14px 20px;}
+  .unit[data-transparent="true"] .clock{background:rgba(2,10,18,.94);padding:28px 22px;border-radius:6px;border:1px solid rgba(var(--accent-rgb),.55);}
+  .unit[data-transparent="true"] .core-label,.unit[data-transparent="true"] .core-caption,.unit[data-transparent="true"] .meta-row{background:rgba(2,10,18,.94);padding:10px 18px;border-radius:3px;}
+  .unit[data-transparent="true"] .core-label{color:#d5f7ff;}
+  .unit[data-transparent="true"] .ring .trk{stroke:rgba(205,242,255,.4);}
+  .unit[data-portrait="true"] .stage{padding:70px 64px;grid-template-rows:auto minmax(0,1fr) 110px 230px;}
+  .unit[data-portrait="true"] .top{flex-wrap:wrap;}.unit[data-portrait="true"] .main{grid-template-columns:1fr 1fr;gap:28px;}
+  .unit[data-portrait="true"] .center{grid-column:1/-1;grid-row:1;}.unit[data-portrait="true"] .panel{align-self:start;}
+
+
+
+
+  .unit[data-transparent="true"] .clock .time{color:#f1f8ff;}
+</style>
+</head>
+<body>
+
+<div id="wall"></div>
+
+<template id="tpl">
+  <div class="frame">
+    <div class="bg"></div>
+    <div class="fx grid"></div>
+    <div class="fx scan"></div>
+    <div class="fx aura" data-k="aura"></div>
+
+    <div class="stage">
+      <!-- top -->
+      <div class="top">
+        <div class="brand">
+          <div class="mark"></div>
+          <div>
+            <h1><span data-username>USER</span> <span>//</span> J.A.R.V.I.S.</h1>
+            <div class="subline" data-k="hostline">readying</div>
+          </div>
+        </div>
+
+        <div class="chips">
+          <div class="chip"><span class="dot" data-k="dot-data"></span>DATA <b data-k="chip-data">SYNC</b></div>
+          <div class="chip"><span class="dot" data-k="dot-audio"></span>AUDIO <b data-k="chip-audio">WAIT</b></div>
+          <div class="chip">GPU <b data-k="chip-gpu">--</b></div>
+          <div class="chip">NET <b data-k="chip-net">--</b></div>
+        </div>
+
+        <div class="clockmeta">
+          <div class="day" data-k="dayname">Friday</div>
+          <div class="date" data-k="fulldate">--</div>
+        </div>
+      </div>
+
+      <!-- main -->
+      <div class="main">
+        <div class="panel">
+          <h2>Hardware matrix <em>DIAGNOSTICS</em></h2>
+          <div class="spec"><div class="k">Processor</div><div class="v" data-k="spec-cpu">--</div></div>
+          <div class="spec"><div class="k">Graphics</div><div class="v" data-k="spec-gpu">--</div></div>
+          <div class="spec"><div class="k">Memory</div><div class="v" data-k="spec-ram">--</div></div>
+          <div class="spec"><div class="k">Platform</div><div class="v" data-k="spec-os">--</div></div>
+          <div class="spec"><div class="k">Uptime</div><div class="v" data-k="spec-up">--</div></div>
+          <div class="spec"><div class="k">Processes</div><div class="v" data-k="spec-proc">--</div></div>
+        </div>
+
+        <div class="center">
+          <div class="core-label">J.A.R.V.I.S. <span>PERSONAL SYSTEM INTERFACE</span></div>
+          <div class="ringwrap">
+            <svg class="reactor reactor-outer" viewBox="0 0 600 600" aria-hidden="true"><circle cx="300" cy="300" r="288"/><circle class="segments" cx="300" cy="300" r="274"/><path d="M300 0V35M300 565V600M0 300H35M565 300H600"/></svg>
+            <svg class="reactor reactor-inner" viewBox="0 0 600 600" aria-hidden="true"><circle cx="300" cy="300" r="254"/><circle class="ticks" cx="300" cy="300" r="242"/></svg>
+            <svg class="ring" viewBox="0 0 520 520">
+              <circle class="trk" cx="260" cy="260" r="238"></circle>
+              <circle class="bass" data-k="ringBass" cx="260" cy="260" r="252"
+                      stroke-dasharray="1583" stroke-dashoffset="1583"></circle>
+              <circle class="sec" data-k="ringSec" cx="260" cy="260" r="238"
+                      stroke-dasharray="1495" stroke-dashoffset="1495"></circle>
+            </svg>
+            <div class="clock">
+              <div class="time"><span data-k="hh">00</span><span class="sep">:</span><span data-k="mm">00</span><span class="ss" data-k="ss">00</span></div>
+              <div class="zone"><span data-k="zonetext">LOCAL TIME</span><span class="meridiem" data-k="mer">AM</span></div>
+            </div>
+          </div>
+
+          <div class="core-caption">LOCAL SYSTEM LINK / REAL-TIME TELEMETRY</div>
+          <div class="meta-row">
+            <div><div class="k">CPU Load</div><div class="v" data-k="m-cpu">--<small>%</small></div></div>
+            <div><div class="k">Frame</div><div class="v" data-k="m-fps">--<small>fps</small></div></div>
+            <div><div class="k">Week</div><div class="v" data-k="m-week">--</div></div>
+            <div><div class="k">Day</div><div class="v" data-k="m-doy">--</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>System telemetry <em>LIVE</em></h2>
+
+          <div class="gauge">
+            <div class="head"><span class="name">CPU</span><span class="val" data-k="g-cpu">0<i>%</i></span></div>
+            <div class="track"><div class="fill" data-k="f-cpu"></div></div>
+            <div class="cores" data-k="cores"></div>
+          </div>
+
+          <div class="gauge">
+            <div class="head"><span class="name">GPU</span><span class="val" data-k="g-gpu">0<i>%</i></span></div>
+            <div class="track"><div class="fill" data-k="f-gpu"></div></div>
+            <div class="sub" style="margin-top:8px" data-k="g-gpu-sub">--</div>
+          </div>
+
+          <div class="gauge">
+            <div class="head"><span class="name">Memory</span><span class="val" data-k="g-mem">0<i>%</i></span></div>
+            <div class="track"><div class="fill" data-k="f-mem"></div></div>
+            <div class="sub" style="margin-top:8px" data-k="g-mem-sub">--</div>
+          </div>
+
+          <div class="gauge">
+            <div class="head"><span class="name">Disk</span><span class="val" data-k="g-disk">0<i>%</i></span></div>
+            <div class="track"><div class="fill cool" data-k="f-disk"></div></div>
+            <div class="sub" style="margin-top:8px" data-k="g-disk-sub">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="history-strip">
+        <div class="history-card"><span>CPU / LOAD HISTORY</span><svg viewBox="0 0 240 48" preserveAspectRatio="none"><polyline data-k="history-cpu" points="0,48 240,48"/></svg></div>
+        <div class="history-card"><span>GPU / LOAD HISTORY</span><svg viewBox="0 0 240 48" preserveAspectRatio="none"><polyline data-k="history-gpu" points="0,48 240,48"/></svg></div>
+        <div class="history-card"><span>MEMORY / USAGE HISTORY</span><svg viewBox="0 0 240 48" preserveAspectRatio="none"><polyline data-k="history-mem" points="0,48 240,48"/></svg></div>
+      </div>
+      <!-- audio -->
+      <div class="audio">
+        <div class="bar-head">
+          <span class="lbl">Audio Spectrum</span>
+          <span class="stat" data-k="audio-stat">no signal</span>
+        </div>
+        <canvas class="spec" data-k="cv"></canvas>
+        <div class="foot">
+          <span>J.A.R.V.I.S. <span style="color:var(--accent-2)">/</span> <span data-username>USER</span> PERSONAL SYSTEM INTERFACE</span>
+          <span class="mid" data-k="displayno">DISPLAY 1</span>
+          <span data-k="clockstamp">--:--:--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+"use strict";
+const JARVIS_STATIC=window.HUD_EDITION==="JARVIS";
+document.documentElement.dataset.edition=JARVIS_STATIC?"JARVIS":"OLED";
+let playback = {paused:false, fps:30, animations:"Full", speed:1};
+let frameTimer = null, frameRequest = null, clockTimer = null, statsPollTimer = null;
+let nextFrameAt = 0, statsBusy = false, audioBusy = false;
+window.setHudPlayback = function(settings) {
+  if (Array.isArray(settings.monitors)) window.setHudMonitors(settings.monitors);
+  playback = {
+    paused: !!settings.paused,
+    fps: [15,30,60,120].includes(settings.fps) ? settings.fps : 30,
+    animations: ["Full","Reduced","Off"].includes(settings.animations) ? settings.animations : "Full",
+    speed: [.5,1,2].includes(settings.speed) ? settings.speed : 1
+  };
+  if (frameTimer !== null) clearTimeout(frameTimer);
+  if (frameRequest !== null) cancelAnimationFrame(frameRequest);
+  if (clockTimer !== null) clearInterval(clockTimer);
+  if (statsPollTimer !== null) clearTimeout(statsPollTimer);
+  if (httpTimer !== null) clearTimeout(httpTimer);
+  frameTimer = frameRequest = clockTimer = statsPollTimer = httpTimer = null;
+  document.documentElement.dataset.motion = playback.animations;
+  document.documentElement.dataset.playbackPaused = String(playback.paused);
+  startOledCare();
+  if (playback.paused) return;
+  tickClock();
+  clockTimer = setInterval(tickClock, playback.animations === "Full" ? 200 : 1000);
+  poll();
+  if (playback.animations !== "Off") {
+    pollAudio();
+    nextFrameAt = performance.now(); frames = 0; fpsT = nextFrameAt;
+    scheduleFrame();
+  } else {
+    for (const u of units) {
+      if (u.paused) continue;
+      if (u.ctx) u.ctx.clearRect(0,0,u.cvw,u.cvh);
+      const aura = q(u,"aura"); if(aura) aura.style.opacity = "0.12";
+      const rb = q(u,"ringBass"); if(rb) rb.style.opacity = "0.16";
+      setHtml(u,"m-fps","0<small>fps</small>");
+    }
+  }
+};
+function scheduleFrame() {
+  if (playback.paused || playback.animations === "Off") return;
+  frameTimer = setTimeout(() => {
+    frameTimer = null;
+    frameRequest = requestAnimationFrame(loop);
+  }, Math.max(0, nextFrameAt - performance.now() - 2));
+}
+
+const qs = new URLSearchParams(location.search);
+const CFG = {
+  accent: qs.get("accent") || (window.HUD_COLORS || {}).accent,
+  accent2: qs.get("accent2") || (window.HUD_COLORS || {}).accent2,
+  clock12: qs.get("clock") !== "24",
+  statsUrl: qs.get("stats") || "http://127.0.0.1:8787/stats",
+  audioUrl: qs.get("audio") || "http://127.0.0.1:8787/audio",
+  bands: 56,
+  pollMs: 1000,
+  designW: 2560,
+  designH: 1440
+};
+if (CFG.accent) document.documentElement.style.setProperty("--accent", CFG.accent);
+if (CFG.accent2) document.documentElement.style.setProperty("--accent-2", CFG.accent2);
+
+if (window.HUD_COLORS) {
+  for (const [key, value] of Object.entries({"--bg-1":HUD_COLORS.background,"--text":HUD_COLORS.text})) {
+    if (/^#[0-9a-f]{6}$/i.test(value)) document.documentElement.style.setProperty(key,value);
+  }
+}
+const accentHex = /^#[0-9a-f]{6}$/i.test(CFG.accent || "") ? CFG.accent : "#a93f68";
+let accentRGB = [1,3,5].map(i => parseInt(accentHex.slice(i,i+2),16)).join(",");
+document.documentElement.style.setProperty("--accent-rgb", accentRGB);
+const accentRgba = alpha => "rgba(" + accentRGB + "," + alpha + ")";
+let secondaryRGB = "206,143,163";
+let audioGain = 1;
+const secondaryRgba = alpha => "rgba(" + secondaryRGB + "," + alpha + ")";
+window.applyHudSettings = function(settings) {
+  const colors = settings.colors || {};
+  const previousGain = audioGain;
+  audioGain = typeof settings.audioSensitivity === "number" && Number.isFinite(settings.audioSensitivity) ? Math.max(0,Math.min(300,settings.audioSensitivity))/100 : 1;
+  if (previousGain > 0) { for (let i=0;i<disp.length;i++) disp[i] = Math.max(0,Math.min(1,disp[i] * audioGain / previousGain)); }
+  if (audioGain === 0) { disp.fill(0); bass = 0; }
+  const valid = (value, fallback) => /^#[0-9a-f]{6}$/i.test(value || "") ? value : fallback;
+  const rgb = hex => [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)).join(",");
+  const primary = valid(colors.accent, "#a93f68");
+  const secondary = valid(colors.accent2, "#ce8fa3");
+  const background = valid(colors.background, "#050409");
+  const text = valid(colors.text, "#ece2e7");
+  accentRGB = rgb(primary);
+  secondaryRGB = rgb(secondary);
+  const style = document.documentElement.style;
+  for (const [key, value] of Object.entries({
+    "--accent":primary, "--accent-2":secondary, "--accent-rgb":accentRGB,
+    "--accent-2-rgb":secondaryRGB, "--background-rgb":rgb(background),
+    "--bg-1":background, "--bg-2":background, "--bg-3":background, "--text":text
+  })) style.setProperty(key, value);
+  window.HUD_TEMPERATURE_UNIT = settings.temperatureUnit === "C" ? "C" : "F";
+  CFG.clock12 = settings.clockFormat !== "24";
+  if (Array.isArray(settings.monitors)) window.setHudMonitors(settings.monitors);
+  if (!playback.paused) tickClock();
+};
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const pad = n => String(n).padStart(2, "0");
+
+function fmtUptime(s) {
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  if (d > 0) return d + "d " + pad(h) + "h " + pad(m) + "m";
+  return h + "h " + pad(m) + "m " + pad(s % 60) + "s";
+}
+
+/* ------------------------------------------------------------- unit layout */
+const units = [];
+let monitorLayouts = null;
+let oledTimer = null;
+window.updateOledCare = function(time=Date.now()) {
+  const triangle=(phase)=>1-4*Math.abs(((phase%1)+1)%1-0.5);
+  const points=[[0,0],[4,0],[4,4],[0,4],[-4,4],[-4,0],[-4,-4],[0,-4],[4,-4]];
+  for(const [index,u] of units.entries()) {
+    const m=u.layout,oled=!JARVIS_STATIC && m.oled===true;
+    u.el.dataset.oled=String(oled);
+    const percent=Number.isFinite(m.oledBrightness)?Math.max(25,Math.min(100,m.oledBrightness)):60;
+    const brightness=m.transparent ? Math.max(.9,percent/100) : percent/100;
+    u.root.style.opacity=String(oled ? (u.paused||playback.paused ? 0 : brightness*(m.oledIdle ? (m.transparent?.8:.2) : 1)) : 1);
+    let x=0,y=0;
+    if(oled && m.oledFloat!==false) {
+      const reachX=10*u.actualScale;
+      const reachY=10*u.actualScale;
+      x=triangle(time/140000+index*.19)*reachX;
+      y=triangle(time/193000+index*.31)*reachY;
+    }
+    if(oled && m.pixelShift!==false) {
+      const offset=points[(Math.floor(time/60000)+index)%points.length];x+=offset[0];y+=offset[1];
+    }
+    u.root.style.setProperty('--oled-shift-x',(x/u.actualScale).toFixed(2)+'px');
+    u.root.style.setProperty('--oled-shift-y',(y/u.actualScale).toFixed(2)+'px');
+  }
+};
+function startOledCare() {
+  if(oledTimer!==null)clearInterval(oledTimer);
+  oledTimer=null;
+  window.updateOledCare();
+  const active=units.filter(u=>!JARVIS_STATIC && u.layout.oled && !u.paused && !playback.paused);
+  if(active.length) {
+    const floating=active.some(u=>u.layout.oledFloat!==false);
+    oledTimer=setInterval(()=>window.updateOledCare(),floating ? 1000/Math.min(30,playback.fps) : 60000);
+  }
+}
+function paletteStyle(element, colors) {
+  const valid=(value,fallback)=>/^#[0-9a-f]{6}$/i.test(value||"")?value:fallback;
+  const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)).join(",");
+  const primary=valid(colors.accent,"#a93f68"),secondary=valid(colors.accent2,"#ce8fa3");
+  const background=valid(colors.background,"#050409"),text=valid(colors.text,"#ece2e7");
+  const primaryRGB=rgb(primary),secondRGB=rgb(secondary);
+  for(const [key,value] of Object.entries({"--accent":primary,"--accent-2":secondary,"--accent-rgb":primaryRGB,"--accent-2-rgb":secondRGB,"--background-rgb":rgb(background),"--bg-1":background,"--bg-2":background,"--bg-3":background,"--text":text}))element.style.setProperty(key,value);
+  return [primaryRGB,secondRGB];
+}
+function applyUnitPalette(u, colors) {
+  const [primary,secondary]=paletteStyle(u.el,colors||{});
+  u.accentRgba=alpha=>"rgba("+primary+","+alpha+")";
+  u.secondaryRgba=alpha=>"rgba("+secondary+","+alpha+")";
+}
+window.setHudMonitors=function(layouts) {
+  const valid=layouts.filter(m=>typeof m.id==="string" && Number.isFinite(m.x) && Number.isFinite(m.y) && m.width>0 && m.height>0);
+  if(!valid.length)return;
+  monitorLayouts=valid;
+  document.documentElement.dataset.transparentHost=String(valid.some(m=>m.transparent===true));
+  buildUnits();
+};
+function buildUnits() {
+  const wall=document.getElementById("wall");
+  let layouts=monitorLayouts;
+  if(!layouts) {
+    const n=clamp(Math.round((window.innerWidth/window.innerHeight)/(CFG.designW/CFG.designH)),1,4);
+    layouts=Array.from({length:n},(_,i)=>({id:"preview-"+i,label:"DISPLAY "+(i+1),x:i*window.innerWidth/n,y:0,width:window.innerWidth/n,height:window.innerHeight,paused:false,colors:window.HUD_COLORS||{}}));
+  }
+  const same=units.length===layouts.length && units.every((u,i)=>u.id===layouts[i].id);
+  if(!same) {
+    wall.innerHTML=""; units.length=0;
+    const tpl=document.getElementById("tpl");
+    for(const layout of layouts) {
+      const el=document.createElement("div"); el.className="unit";
+      el.appendChild(tpl.content.cloneNode(true)); wall.appendChild(el);
+      const u={el,root:el.firstElementChild,cache:new Map(),id:layout.id,paused:false,hasClock:false,hasStats:false};
+      units.push(u);
+    }
+  }
+  units.forEach((u,i)=>{
+    const layout=layouts[i]; u.layout=layout; u.paused=!!layout.paused;
+    u.el.dataset.monitor=layout.id; u.el.dataset.paused=String(u.paused);
+    u.el.dataset.oled=String(!JARVIS_STATIC && !!layout.oled);
+    u.el.dataset.transparent=String(!!layout.transparent);
+    applyUnitPalette(u,layout.colors||window.HUD_COLORS||{});
+    const dn=q(u,"displayno"); if(dn)dn.textContent=layout.label;
+  });
+  rescale();
+  if(!same) {
+    units.forEach(initCanvas);
+    units.forEach(u=>drawSpectrum(u,performance.now()));
+    tickClock();
+    const mode=audioMode;audioMode="none";setAudioChip(mode||"none");
+  }
+}
+function rescale() {
+  const wall=document.getElementById("wall");
+  const right=Math.max(1,...units.map(u=>u.layout.x+u.layout.width));
+  const bottom=Math.max(1,...units.map(u=>u.layout.y+u.layout.height));
+  const sx=wall.clientWidth/right,sy=wall.clientHeight/bottom;
+  for(const u of units) {
+    const m=u.layout,w=m.width*sx,h=m.height*sy;
+    Object.assign(u.el.style,{position:"absolute",left:(m.x*sx)+"px",top:(m.y*sy)+"px",width:w+"px",height:h+"px"});
+    const base=Math.min(w/CFG.designW,h/CFG.designH);
+    u.actualScale=base;u.displayW=w;u.displayH=h;
+    u.root.style.width=(w/base)+"px";u.root.style.height=(h/base)+"px";
+    u.el.dataset.portrait=String(w/h<1);
+    u.root.style.setProperty("--s",String(u.actualScale));
+  }
+  startOledCare();
+}
+
+function q(u, key) {
+  if (u.cache.has(key)) return u.cache.get(key);
+  const el = u.root.querySelector('[data-k="' + key + '"]');
+  u.cache.set(key, el);
+  return el;
+}
+const setText = (u, key, v) => { const e = q(u, key); if (e) e.textContent = v; };
+const setHtml = (u, key, v) => { const e = q(u, key); if (e) e.innerHTML = v; };
+const setDot = (u, key, state) => {
+  const e = q(u, key); if (!e) return;
+  e.classList.remove("on", "warn", "bad");
+  if (state) e.classList.add(state);
+};
+
+/* ------------------------------------------------------------------- clock */
+const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const RING_SEC = 1495;
+
+function tickClock() {
+  const now = new Date();
+  let h = now.getHours();
+  let mer = "";
+  if (CFG.clock12) { mer = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; }
+
+  const hh = pad(h), mm = pad(now.getMinutes()), ss = pad(now.getSeconds());
+  const sec = now.getSeconds() + (playback.animations === "Full" ? now.getMilliseconds() / 1000 : 0);
+  const off = String(RING_SEC - (sec / 60) * RING_SEC);
+
+  const tz = -now.getTimezoneOffset() / 60;
+  const zone = "LOCAL TIME  UTC" + (tz >= 0 ? "+" : "") + tz + "  ";
+
+  const start = new Date(now.getFullYear(), 0, 1);
+  const doy = Math.floor((now - start) / 86400000) + 1;
+  const week = Math.ceil((doy + start.getDay()) / 7);
+
+  for (const u of units) {
+    if (u.paused && u.hasClock) continue;
+    u.hasClock = true;
+    setText(u, "hh", hh);
+    setText(u, "mm", mm);
+    setText(u, "ss", ss);
+    setText(u, "mer", mer);
+    const ringSec = q(u, "ringSec");
+    if (ringSec) ringSec.setAttribute("stroke-dashoffset", off);
+    setText(u, "dayname", DAYS[now.getDay()]);
+    setText(u, "fulldate", now.getDate() + " " + MONTHS[now.getMonth()] + " " + now.getFullYear());
+    setText(u, "zonetext", zone);
+    setText(u, "clockstamp", pad(now.getHours()) + ":" + mm + ":" + ss);
+    setText(u, "m-doy", String(doy));
+    setText(u, "m-week", String(week));
+  }
+}
+
+/* --------------------------------------------------------------- data feed */
+let FAIL = 0, ONLINE = false;
+const S = { cpu: 0, gpu: 0, mem: 0, disk: 0 };
+
+function renderStats(d) {
+  const username = window.HUD_USERNAME || d.user || "USER";
+  document.querySelectorAll("[data-username]").forEach(el => el.textContent = username);
+  document.title = username + " // J.A.R.V.I.S.";
+  if (!ONLINE) { ONLINE = true; units.forEach(u => u.el.classList.remove("offline")); }
+  FAIL = 0;
+
+  S.cpu += ((d.cpu || 0) - S.cpu) * 0.55;
+
+  for (const u of units) {
+    if (u.paused && u.hasStats) continue;
+    u.hasStats = true;
+    u.history ||= {cpu:[],gpu:[],mem:[]};
+    for(const [key,value] of Object.entries({cpu:d.cpu,gpu:d.gpu?.util,mem:d.mem?.percent})) {
+      if(!Number.isFinite(value))continue;
+      const samples=u.history[key];samples.push(clamp(value,0,100));if(samples.length>60)samples.shift();
+      q(u,"history-"+key)?.setAttribute("points",samples.map((v,i)=>(i*240/59).toFixed(1)+","+(46-v*.44).toFixed(1)).join(" "));
+    }
+    setDot(u, "dot-data", "on");
+    setText(u, "chip-data", "SYNC");
+    setText(u, "chip-net", (d.net ? d.net.down_mbps.toFixed(1) : "0.0") + " Mbps");
+    setText(u, "hostline", (d.hostname || "") + "  //  " + (d.user || ""));
+
+    setText(u, "spec-cpu",
+      (d.cpu_name || "--").replace(/\(R\)|\(TM\)/g, "").replace(/\s+/g, " ").trim());
+    setHtml(u, "spec-gpu", (d.gpu_name || "--") +
+      (d.gpu_vram_gb ? ' <small>' + d.gpu_vram_gb + ' GB</small>' : ""));
+    setHtml(u, "spec-ram", d.mem
+      ? (d.ram_total_gb || "--") + ' GB <small>' + d.cores + 'C / ' + d.threads + 'T</small>'
+      : "--");
+    setText(u, "spec-os", d.os || "--");
+    setText(u, "spec-up", fmtUptime(d.uptime_s || 0));
+    setHtml(u, "spec-proc", (d.procs || 0) + ' <small>running</small>');
+
+    // cpu
+    setHtml(u, "g-cpu", Math.round(S.cpu) + "<i>%</i>");
+    const fc = q(u, "f-cpu"); if (fc) fc.style.width = clamp(S.cpu, 0, 100) + "%";
+    setHtml(u, "m-cpu", Math.round(S.cpu) + "<small>%</small>");
+
+    const box = q(u, "cores");
+    if (box && d.cpu_cores && d.cpu_cores.length) {
+      if (box.children.length !== d.cpu_cores.length) {
+        box.innerHTML = "";
+        d.cpu_cores.forEach(() => box.appendChild(document.createElement("i")));
+        box.style.gridTemplateColumns = "repeat(" + d.cpu_cores.length + ",1fr)";
+      }
+      d.cpu_cores.forEach((v, i) => {
+        const el = box.children[i];
+        const k = clamp(v / 100, 0, 1);
+        el.style.background = u.secondaryRgba((0.10 + k * 0.85).toFixed(3));
+        el.style.boxShadow = k > 0.55 ? "0 0 " + (6 + k * 10).toFixed(0) + "px " + u.accentRgba(.75) : "none";
+      });
+    }
+
+    // gpu
+    if (d.gpu && d.gpu.util !== null && d.gpu.util !== undefined) {
+      S.gpu += (d.gpu.util - S.gpu) * 0.5;
+      setHtml(u, "g-gpu", Math.round(S.gpu) + "<i>%</i>");
+      const fg = q(u, "f-gpu"); if (fg) fg.style.width = clamp(S.gpu, 0, 100) + "%";
+      const useCelsius = window.HUD_TEMPERATURE_UNIT === "C";
+      const tempLabel = typeof d.gpu.temp_c === "number" && Number.isFinite(d.gpu.temp_c) ? Math.round(useCelsius ? d.gpu.temp_c : d.gpu.temp_c * 9 / 5 + 32) + (useCelsius ? "\u00b0C" : "\u00b0F") : null;
+      setHtml(u, "g-gpu-sub",
+        (tempLabel !== null ? "<b>" + tempLabel + "</b> core  " : "") +
+        (d.gpu.vram_pct !== null && d.gpu.vram_pct !== undefined ? "VRAM <b>" + d.gpu.vram_pct + "%</b>" : ""));
+      setText(u, "chip-gpu", tempLabel !== null ? tempLabel : "n/a");
+    } else {
+      setHtml(u, "g-gpu", "--<i>%</i>");
+      setText(u, "g-gpu-sub", "no telemetry");
+      setText(u, "chip-gpu", "n/a");
+    }
+
+    // memory
+    if (d.mem) {
+      S.mem += (d.mem.percent - S.mem) * 0.5;
+      setHtml(u, "g-mem", Math.round(S.mem) + "<i>%</i>");
+      const fm = q(u, "f-mem"); if (fm) fm.style.width = clamp(S.mem, 0, 100) + "%";
+      setHtml(u, "g-mem-sub", "<b>" + d.mem.used_gb + " GB</b> / " + d.mem.total_gb + " GB");
+    }
+
+    // disk
+    const disk = d.disks && d.disks.length ? d.disks[0] : null;
+    if (disk) {
+      S.disk += (disk.percent - S.disk) * 0.4;
+      setHtml(u, "g-disk", Math.round(S.disk) + "<i>%</i>");
+      const fd = q(u, "f-disk"); if (fd) fd.style.width = clamp(S.disk, 0, 100) + "%";
+      setHtml(u, "g-disk-sub", disk.mount + "  <b>" + disk.used_gb + "</b> / " + disk.total_gb + " GB");
+    }
+  }
+}
+
+function markOffline() {
+  if (!ONLINE) return;
+  ONLINE = false;
+  units.forEach(u => {
+    if (u.paused) return;
+    u.el.classList.add("offline");
+    setDot(u, "dot-data", "warn");
+    setText(u, "chip-data", "OFFLINE");
+    setText(u, "chip-gpu", "n/a");
+  });
+}
+
+async function poll() {
+  if (playback.paused || statsBusy) return;
+  statsBusy = true;
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), 1400);
+  try {
+    const r = await fetch(CFG.statsUrl, { cache: "no-store", signal: ctrl.signal });
+    clearTimeout(to);
+    if (!r.ok) throw new Error("http " + r.status);
+    const data = await r.json();
+    if (!playback.paused) renderStats(data);
+  } catch (e) {
+    clearTimeout(to);
+    if (!playback.paused && ++FAIL >= 2) markOffline();
+  }
+  statsBusy = false;
+  if (!playback.paused) statsPollTimer = setTimeout(() => { statsPollTimer = null; poll(); }, CFG.pollMs);
+}
+
+/* ------------------------------------------------------------------- audio */
+const NB = CFG.bands;
+const disp = new Float32Array(NB);
+let audioMode = "none";
+let lastAudio = 0;
+let bass = 0;
+
+function feedAudio(raw) {
+  if (!raw || !raw.length) return;
+  lastAudio = performance.now();
+  if (audioMode !== "we" && audioMode !== "lively") setAudioChip("we");
+  const half = raw.length >= 128 ? 64 : raw.length;
+  for (let i = 0; i < NB; i++) {
+    const idx = Math.floor(i / NB * half);
+    const l = raw[idx] || 0;
+    const r = raw.length >= 128 ? (raw[half + idx] || 0) : 0;
+    disp[i] += (Math.pow(clamp(Math.max(l, r) * audioGain, 0, 1), 0.82) - disp[i]) * 0.42;
+  }
+}
+
+function setAudioChip(mode) {
+  if (audioMode === mode) return;
+  audioMode = mode;
+  for (const u of units) {
+    if (u.paused) continue;
+    if (mode === "we") { setDot(u, "dot-audio", "on"); setText(u, "chip-audio", "LINKED"); setText(u, "audio-stat", "wallpaper-engine feed"); }
+    else if (mode === "lively") { setDot(u, "dot-audio", "on"); setText(u, "chip-audio", "LINKED"); setText(u, "audio-stat", "lively feed"); }
+    else if (mode === "http") { setDot(u, "dot-audio", "on"); setText(u, "chip-audio", "SYSTEM"); setText(u, "audio-stat", "device loopback"); }
+    else if (mode === "sim") { setDot(u, "dot-audio", "warn"); setText(u, "chip-audio", "SIM"); setText(u, "audio-stat", "no capture - simulated"); }
+    else { setDot(u, "dot-audio", "bad"); setText(u, "chip-audio", "WAIT"); setText(u, "audio-stat", "connecting"); }
+  }
+}
+
+/* system-audio fallback: the local service captures the playback device */
+let httpTimer = null;
+
+function applyBands(bands) {
+  const n = bands.length;
+  if (!n) return;
+  for (let i = 0; i < NB; i++) {
+    const src = bands[Math.min(n - 1, Math.floor(i / NB * n))] || 0;
+    disp[i] += (clamp(src * audioGain, 0, 1) - disp[i]) * 0.5;
+  }
+}
+
+async function pollAudio() {
+  if (playback.paused || playback.animations === "Off" || audioBusy) return;
+  audioBusy = true;
+  try {
+    const r = await fetch(CFG.audioUrl, { cache: "no-store" });
+    const d = await r.json();
+    if (playback.paused || playback.animations === "Off") { audioBusy = false; return; }
+    if (d && d.ok && !d.stale) {
+      // a live wallpaper-host feed always wins; otherwise use the loopback
+      const hostFresh = (audioMode === "we" || audioMode === "lively") &&
+                        (performance.now() - lastAudio < 2500);
+      if (!hostFresh) {
+        lastAudio = performance.now();
+        applyBands(d.bands || []);
+        setAudioChip("http");
+      }
+    } else if (audioMode === "http" || audioMode === "none") {
+      setAudioChip("sim");
+    }
+  } catch (e) {
+    if (!playback.paused && playback.animations !== "Off" && (audioMode === "http" || audioMode === "none")) setAudioChip("sim");
+  }
+  audioBusy = false;
+  if (!playback.paused && playback.animations !== "Off") httpTimer = setTimeout(() => { httpTimer = null; pollAudio(); }, 60);
+}
+
+function startHttpAudio() {
+  if (httpTimer === null) pollAudio();
+}
+
+function hookAudio() {
+  // the loopback feed runs in every host; a wallpaper-host feed overrides it
+  startHttpAudio();
+  if (typeof window.wallpaperRegisterAudioListener === "function") {
+    window.wallpaperRegisterAudioListener(feedAudio);
+    setAudioChip("we");
+    return true;
+  }
+  if (typeof window.LivelyAudioListener === "function") {
+    window.LivelyAudioListener(feedAudio);
+    setAudioChip("lively");
+    return true;
+  }
+  return false;
+}
+
+/* ------------------------------------------------------------------ canvas */
+function initCanvas(u) {
+  const cv = q(u, "cv");
+  if (!cv) return;
+  u.cv = cv;
+  u.ctx = cv.getContext("2d");
+  // backing store matches the design-space box so the scaled frame stays crisp
+  const r = cv.getBoundingClientRect();
+  const scale = Number(u.root.style.getPropertyValue("--s")) || 1;
+  const w = Math.max(320, Math.round(r.width / scale));
+  const h = Math.max(80, Math.round(r.height / scale));
+  cv.width = w;
+  cv.height = h;
+  u.cvw = w;
+  u.cvh = h;
+}
+
+function drawSpectrum(u, t) {
+  const ctx = u.ctx, w = u.cvw, h = u.cvh;
+  if (!ctx || !w) return;
+  ctx.clearRect(0, 0, w, h);
+
+  const gap = 3;
+  const bw = (w - gap * (NB - 1)) / NB;
+  const baseY = h * 0.72;
+
+  if (audioMode === "sim" || performance.now() - lastAudio > 3000) {
+    if (audioMode !== "sim") setAudioChip("sim");
+    for (let i = 0; i < NB; i++) {
+      const n = Math.sin(t * 0.0011 + i * 0.42) * 0.5 + 0.5;
+      const m = Math.sin(t * 0.0007 + i * 0.13) * 0.35 + 0.42;
+      const v = clamp(n * m * 1.35, 0, 1) * (1 - i / NB * 0.55);
+      disp[i] += (clamp(v * audioGain, 0, 1) - disp[i]) * 0.06;
+    }
+  }
+
+  for (let i = 0; i < NB; i++) {
+    const v = clamp(disp[i], 0, 1);
+    const bh = Math.max(2, v * (baseY - 6));
+    const x = i * (bw + gap);
+    const y = baseY - bh;
+
+    const g = ctx.createLinearGradient(0, y, 0, baseY);
+    g.addColorStop(0, u.secondaryRgba(.98));
+    g.addColorStop(0.55, u.accentRgba(.85));
+    g.addColorStop(1, u.accentRgba(.25));
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, bw, bh);
+
+    if (v > 0.02) {
+      ctx.fillStyle = "rgba(236,226,231,.92)";
+      ctx.fillRect(x, y - 2, bw, 1.6);
+    }
+    ctx.fillStyle = u.accentRgba(.14);
+    ctx.fillRect(x, baseY + 2, bw, bh * 0.24);
+  }
+
+  ctx.fillStyle = u.secondaryRgba(.16);
+  ctx.fillRect(0, baseY, w, 1);
+}
+
+/* -------------------------------------------------------------------- loop */
+let frames = 0, fpsT = performance.now(), frameAt = 0;
+
+function loop(t) {
+  frameRequest = null;
+  if (playback.paused || playback.animations === "Off") return;
+  if (t < nextFrameAt - 0.5) { scheduleFrame(); return; }
+  nextFrameAt = Math.max(nextFrameAt + 1000 / playback.fps, t);
+  const motionTime = t * playback.speed;
+  // bass envelope shared by every unit
+  let sum = 0;
+  for (let i = 0; i < 8; i++) sum += disp[i];
+  bass += (sum / 8 - bass) * 0.18;
+
+  const arc = 1583 * clamp(0.06 + bass * 1.5, 0, 1);
+  const auraOp = String(clamp(0.12 + bass * 0.55 + 0.04 * (Math.sin(motionTime * 0.001) + 1), 0, 0.75));
+
+  for (const u of units) {
+    if (u.paused) continue;
+    drawSpectrum(u, motionTime);
+    const rb = q(u, "ringBass");
+    if (rb) {
+      rb.setAttribute("stroke-dashoffset", String(1583 - arc));
+      rb.style.opacity = playback.animations === "Reduced" ? "0.16" : String(0.16 + bass * 0.8);
+    }
+    const aura = q(u, "aura");
+    if (aura) aura.style.opacity = playback.animations === "Reduced" ? "0.12" : auraOp;
+  }
+
+  frames++;
+  if (t - fpsT > 1000) {
+    const fps = Math.round(frames * 1000 / (t - fpsT));
+    units.forEach(u => { if (!u.paused) setHtml(u, "m-fps", fps + "<small>fps</small>"); });
+    frames = 0; fpsT = t;
+  }
+  scheduleFrame();
+}
+
+/* -------------------------------------------------------------------- boot */
+function boot() {
+  window.applyHudSettings({colors:window.HUD_COLORS || {}, temperatureUnit:window.HUD_TEMPERATURE_UNIT, clockFormat:qs.get("clock") || "12"});
+  buildUnits();
+  hookAudio();
+  window.setHudPlayback(playback);
+
+  let tries = 0;
+  const retry = setInterval(() => {
+    if (hookAudio() || ++tries > 5) clearInterval(retry);
+  }, 1200);
+
+  let rt;
+  window.addEventListener("resize", () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => { buildUnits(); }, 250);
+  });
+  setTimeout(() => { units.forEach(initCanvas); }, 400);
+  window.__hudReady = true;
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
+</script>
+</body>
+</html>
