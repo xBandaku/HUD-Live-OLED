@@ -1,7 +1,13 @@
 # HUD Live OLED
 
+[![Windows build](https://github.com/xBandaku/HUD-Live-OLED/actions/workflows/windows.yml/badge.svg)](https://github.com/xBandaku/HUD-Live-OLED/actions/workflows/windows.yml)
+
 A Windows desktop wallpaper HUD with system telemetry, audio visualization,
 themes, per-monitor controls, transparency, and OLED care settings.
+
+[Report a bug](https://github.com/xBandaku/HUD-Live-OLED/issues/new/choose) ·
+[Ask a question](https://github.com/xBandaku/HUD-Live-OLED/discussions) ·
+[Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
 ## Profiles
 
@@ -74,3 +80,6 @@ and builds a downloadable artifact on pushes to `main`, pull requests, and manua
 runs. Publish a GitHub Release with a version tag such as `v16.1.0` to build that
 tag and attach the ZIP and checksum automatically. Update the project version in
 `source/HudWall.csproj` before tagging a new version.
+
+Repository review rules, CI, dependency maintenance, and sponsorship setup are
+documented in [GitHub project setup](docs/GITHUB_SETUP.md).

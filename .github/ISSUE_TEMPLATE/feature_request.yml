@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest an improvement to HUD Live OLED.
+title: '[Feature]: '
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Explain the situation and who would benefit.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the feature and any alternatives you considered.
+    validations:
+      required: true
