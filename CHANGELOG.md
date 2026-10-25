@@ -1,8 +1,20 @@
 # HUD Live — Standalone Changelog
 
-**Latest release: October 24, 2026**
+**Latest changes: October 25, 2026**
 
 HUD Live now runs as an independent Windows live wallpaper, with tray controls, customizable themes, audio reactivity, performance settings, and separate settings for each monitor. Wallpaper Engine is no longer required.
+
+## v16.1 - Profiles, telemetry reliability, and release builds
+
+- Added Gaming, Work, Minimal, and Night starter profiles, named profile saving
+  in Settings, and immediate profile switching from the tray. Profiles preserve
+  custom palettes and per-monitor OLED settings without changing Windows startup.
+- Bounded NVIDIA process execution and both output streams, prevented overlapping
+  GPU polls, and cleared failed or stale readings and the corresponding load bar.
+  Polls finishing after pause/resume or disposal cannot publish their old result.
+- Serialized telemetry snapshots and disposed process enumeration handles.
+- Added Windows regression tests, a self-contained ZIP packaging script with a
+  SHA-256 checksum, and GitHub Actions builds with assets for published releases.
 
 ## v15 - JARVIS and OLED editions
 

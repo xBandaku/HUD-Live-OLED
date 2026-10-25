@@ -733,7 +733,9 @@ function renderStats(d) {
       setText(u, "chip-gpu", tempLabel !== null ? tempLabel : "n/a");
     } else {
       setHtml(u, "g-gpu", "--<i>%</i>");
-      setText(u, "g-gpu-sub", "no telemetry");
+      setText(u, "g-gpu-sub", "unavailable / waiting for GPU telemetry");
+      S.gpu = 0;
+      const fg = q(u, "f-gpu"); if (fg) fg.style.width = "0%";
       setText(u, "chip-gpu", "n/a");
     }
 

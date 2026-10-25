@@ -41,7 +41,8 @@ internal sealed partial class HudForm
             button.Click += handler; page.Controls.Add(button); return button;
         }
         var appearance = Page("Appearance");
-        var palette = ThemeSettings.Load(SettingsStore.Root);
+        var draft = ProfileSettings.Capture(SettingsStore.Root);
+        var palette = draft.Colors;
         var theme = Choice(appearance, "Theme", ThemeSettings.Presets.Keys.Concat(new[] { "Custom" }).ToArray(), ThemeSettings.Match(palette) ?? "Custom");
         var preview = new Panel { Width = 630, Height = 90, Margin = new Padding(3, 10, 3, 4) };
         var previewTitle = new Label { Text = "HUD LIVE  •  12:45", AutoSize = true, Location = new Point(18, 12), Font = new Font("Segoe UI", 17, FontStyle.Bold) };
@@ -62,7 +63,7 @@ internal sealed partial class HudForm
         var audio = new NumericUpDown { Minimum = 0, Maximum = 300, Value = AudioSettings.Load(SettingsStore.Root), Width = 140, AccessibleName = "Audio sensitivity" }; appearance.Controls.Add(audio);
         Action(appearance, "Custom colors...", (_, _) => {
             using var dialog = new ColorSettings(SettingsStore.Root);
-            if (dialog.ShowDialog(window) == DialogResult.OK) { palette = ThemeSettings.Load(SettingsStore.Root); theme.SelectedItem = "Custom"; PreviewTheme(); ApplySettings(); }
+            if (dialog.ShowDialog(window) == DialogResult.OK) { palette = ThemeSettings.Load(SettingsStore.Root); draft.CustomColors = new(palette); theme.SelectedItem = "Custom"; PreviewTheme(); ApplySettings(); }
         });
 
         var performance = Page("Performance");
@@ -85,6 +86,60 @@ internal sealed partial class HudForm
         display.SelectedIndexChanged += (_, _) => SelectDisplay(); SelectDisplay();
         monitors.Controls.Add(new Label { Text = "OLED care affects the HUD. Keep your monitor's panel care enabled.", AutoSize = true });
 
+        ProfileSettings CaptureDraft()
+        {
+            var result = draft.Clone();
+            string selected = (string)theme.SelectedItem;
+            result.Colors = selected != "Custom" && ThemeSettings.Presets.TryGetValue(selected, out var preset) ? new(preset) : new(palette);
+            result.CustomColors = selected == "Custom" ? new(palette) : draft.CustomColors;
+            result.Clock = (string)clock.SelectedItem; result.Temperature = (string)temperature.SelectedItem;
+            result.Audio = (int)audio.Value;
+            result.Performance = new PerformanceSettings { Fps = int.Parse((string)fps.SelectedItem), Animations = (string)animations.SelectedItem,
+                Speed = double.Parse((string)speed.SelectedItem, System.Globalization.CultureInfo.InvariantCulture), AutoPause = automatic.Checked, PauseApps = new(pauseApps) };
+            result.Monitors = JsonSerializer.Deserialize<Dictionary<string, MonitorPreference>>(JsonSerializer.Serialize(preferences));
+            foreach (var entry in result.Monitors.Where(p => p.Value.Theme == "Custom"))
+                if (!result.MonitorColors.ContainsKey(entry.Key)) result.MonitorColors[entry.Key] = ThemeSettings.Load(MonitorSettings.ColorFolder(SettingsStore.Root, entry.Key));
+            return result;
+        }
+        var profilesPage = Page("Profiles");
+        List<NamedProfile> profiles;
+        bool profilesReadable = true;
+        try { profiles = ProfileCatalog.Load(SettingsStore.Root, screens.Select(s => s.DeviceName)); }
+        catch (Exception ex) {
+            profilesReadable = false;
+            profiles = new();
+            profilesPage.Controls.Add(new Label { Text = "Could not read profiles: " + ex.Message + "\nCheck profiles.json and its backup in the settings folder.", AutoSize = true, MaximumSize = new Size(620, 0) });
+        }
+        var profileChoice = Choice(profilesPage, "Saved profile", profiles.Select(p => p.Name).ToArray(), "");
+        var profileName = new TextBox { Width = 400, MaxLength = 80, AccessibleName = "Profile name" };
+        profilesPage.Controls.Add(new Label { Text = "Profile name (use an existing name to replace it)", AutoSize = true });
+        profilesPage.Controls.Add(profileName);
+        var profileStatus = new Label { AutoSize = true, MaximumSize = new Size(620, 0) };
+        Action(profilesPage, "Load selected profile", (_, _) => {
+            if (profileChoice.SelectedItem is not string name) return;
+            try {
+                draft = profiles.Single(p => p.Name == name).Settings.Clone(); draft.Validate();
+                palette = draft.Colors; theme.SelectedItem = ThemeSettings.Match(palette) ?? "Custom"; PreviewTheme();
+                clock.SelectedItem = draft.Clock; temperature.SelectedItem = draft.Temperature; audio.Value = draft.Audio;
+                fps.SelectedItem = draft.Performance.Fps.ToString(); animations.SelectedItem = draft.Performance.Animations;
+                speed.SelectedItem = draft.Performance.Speed.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                automatic.Checked = draft.Performance.AutoPause; pauseApps = new(draft.Performance.PauseApps);
+                preferences = draft.Clone().Monitors; SelectDisplay();
+                profileName.Text = name; profileStatus.Text = "Loaded " + name + ". Click Apply to update the wallpaper.";
+            } catch (Exception ex) { MessageBox.Show(window, ex.Message, "Could not load profile"); }
+        });
+        var saveProfile = Action(profilesPage, "Save current settings as profile", (_, _) => {
+            try {
+                ProfileCatalog.Save(SettingsStore.Root, profiles, profileName.Text, CaptureDraft());
+                profileChoice.Items.Clear(); profileChoice.Items.AddRange(profiles.Select(p => p.Name).ToArray());
+                profileChoice.SelectedItem = profileName.Text.Trim();
+                profileStatus.Text = "Saved " + profileName.Text.Trim() + ".";
+            } catch (Exception ex) { MessageBox.Show(window, ex.Message, "Could not save profile"); }
+        });
+        saveProfile.Enabled = profilesReadable;
+        profilesPage.Controls.Add(profileStatus);
+        profilesPage.Controls.Add(new Label { Text = "Profiles include appearance, audio, performance, and per-monitor OLED settings.\nSave captures the controls in this window, including unapplied edits.\nWindows startup and the temporary pause-all switch are separate.", AutoSize = true, MaximumSize = new Size(620, 0), Margin = new Padding(3, 16, 3, 4) });
+
         var startupPage = Page("Startup & support");
         var startupSettings = new StartupSettings(Environment.GetFolderPath(Environment.SpecialFolder.Startup), AppContext.BaseDirectory);
         var startup = Toggle(startupPage, "Start HUD Live when I sign in to Windows", startupSettings.IsEnabled());
@@ -98,18 +153,11 @@ internal sealed partial class HudForm
         apply.Click += (_, _) => {
             try
             {
-                string selected = (string)theme.SelectedItem;
-                if (selected != "Custom" || File.Exists(Path.Combine(SettingsStore.Root, "custom-colors.json"))) ThemeSettings.ApplyPreset(SettingsStore.Root, selected);
-                else ThemeSettings.Save(SettingsStore.Root, palette, custom: true);
-                ClockSettings.Save(SettingsStore.Root, (string)clock.SelectedItem);
-                TemperatureSettings.Save(SettingsStore.Root, (string)temperature.SelectedItem);
-                AudioSettings.Save(SettingsStore.Root, (int)audio.Value);
-                var next = new PerformanceSettings { Fps = int.Parse((string)fps.SelectedItem), Animations = (string)animations.SelectedItem,
-                    Speed = double.Parse((string)speed.SelectedItem, System.Globalization.CultureInfo.InvariantCulture), AutoPause = automatic.Checked, PauseApps = pauseApps };
-                next.Save(SettingsStore.Root);
-                MonitorSettings.Save(SettingsStore.Root, preferences);
+                var next = CaptureDraft();
+                next.Apply(SettingsStore.Root);
                 if (startup.Checked != startupSettings.IsEnabled()) startupSettings.SetEnabled(startup.Checked);
-                _performance = next; _monitorPreferences = preferences; _manualPause = paused.Checked;
+                draft = next.Clone();
+                _performance = next.Performance; _monitorPreferences = next.Monitors; _manualPause = paused.Checked;
                 _monitorSignature = ""; EvaluatePlayback(); ApplySettings();
                 var oldMenu = _tray.ContextMenuStrip; _tray.ContextMenuStrip = BuildMenu(); oldMenu.Dispose();
                 apply.Text = "Applied";

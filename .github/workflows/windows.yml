@@ -1,0 +1,52 @@
+name: Windows build and release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run regression tests
+        run: dotnet run --project tests/Tests.csproj -c Release
+      - name: Build Windows ZIP
+        shell: pwsh
+        run: ./scripts/Build-Release.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HUD-Live-OLED-win-x64
+          path: |
+            artifacts/HUD-Live-OLED-win-x64.zip
+            artifacts/HUD-Live-OLED-win-x64.zip.sha256
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: HUD-Live-OLED-win-x64
+          path: release-assets
+      - name: Attach ZIP and checksum to the published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" release-assets/* --clobber

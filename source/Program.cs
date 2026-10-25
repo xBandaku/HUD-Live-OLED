@@ -134,6 +134,7 @@ namespace HudWall
             menu.Items[0].Enabled = false;
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Settings...", null, (_, __) => ShowSettings());
+            AddProfilesMenu(menu);
             menu.Items.Add("Reload page", null, (_, __) => { try { _web.CoreWebView2?.Reload(); } catch { } });
             menu.Items.Add("Color settings...", null, (_, __) => {
                 using var dialog = new ColorSettings(SettingsStore.Root);

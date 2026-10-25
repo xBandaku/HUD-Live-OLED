@@ -28,26 +28,16 @@ namespace HudWall
 
         private long _prevNetRx, _prevNetTx, _prevNetTicks;
 
-        private volatile GpuSample _gpu = new GpuSample();
-        private System.Threading.Timer _gpuTimer;
-
-        private volatile bool _paused;
-        internal void SetPaused(bool paused) { _paused = paused; }
+        private readonly GpuTelemetry _gpu = new();
+        internal void SetPaused(bool paused) => _gpu.SetPaused(paused);
         private double _lastCpu;
         private long _lastProcs;
-
-        internal sealed class GpuSample
-        {
-            public double? Util;
-            public double? TempC;
-            public double? VramPct;
-        }
 
         public StatsCollector()
         {
             CollectStatic();
             SampleCpu(); // prime deltas
-            _gpuTimer = new System.Threading.Timer(_ => PollGpu(), null, 300, 900);
+
         }
 
         // ------------------------------------------------------------------ static
@@ -83,12 +73,8 @@ namespace HudWall
             string gpuName = null, gpuVram = null;
             try
             {
-                var psi = new ProcessStartInfo("nvidia-smi",
-                    "--query-gpu=name,memory.total --format=csv,noheader,nounits")
-                { RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
-                using var p = Process.Start(psi);
-                string line = p.StandardOutput.ReadLine();
-                p.WaitForExit(2500);
+                string line = BoundedProcess.Run("nvidia-smi",
+                    "--id=0 --query-gpu=name,memory.total --format=csv,noheader,nounits")?.Split('\n')[0];
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     var parts = line.Split(',');
@@ -198,41 +184,13 @@ namespace HudWall
             finally { Marshal.FreeHGlobal(buf); }
         }
 
-        // --------------------------------------------------------------------- gpu
-        private void PollGpu()
-        {
-            if (_paused) return;
-            try
-            {
-                var psi = new ProcessStartInfo("nvidia-smi",
-                    "--query-gpu=utilization.gpu,temperature.gpu,memory.used,memory.total --format=csv,noheader,nounits")
-                { RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
-                using var p = Process.Start(psi);
-                string line = p.StandardOutput.ReadLine();
-                p.WaitForExit(2500);
-                if (string.IsNullOrWhiteSpace(line)) return;
-                var f = line.Split(',');
-                if (f.Length < 4) return;
-                var s = new GpuSample
-                {
-                    Util = ParseD(f[0]),
-                    TempC = ParseD(f[1]),
-                };
-                double? used = ParseD(f[2]), tot = ParseD(f[3]);
-                if (used.HasValue && tot.HasValue && tot.Value > 0)
-                    s.VramPct = Math.Round(used.Value / tot.Value * 100.0, 1);
-                _gpu = s;
-            }
-            catch { /* no nvidia-smi: leave last sample */ }
-        }
-
-        private static double? ParseD(string s)
-        {
-            return double.TryParse(s.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : (double?)null;
-        }
-
         // ------------------------------------------------------------------- json
         public string SnapshotJson()
+        {
+            lock (_sync) return SnapshotJsonCore();
+        }
+
+        private string SnapshotJsonCore()
         {
             double cpu;
             double[] cores;
@@ -285,9 +243,13 @@ namespace HudWall
             catch { }
 
             long uptime = Environment.TickCount64 / 1000;
-            try { _lastProcs = Process.GetProcesses().Length; } catch { }
+            try {
+                var processes = Process.GetProcesses();
+                _lastProcs = processes.Length;
+                foreach (var process in processes) process.Dispose();
+            } catch { }
 
-            var g = _gpu;
+            var g = _gpu.Snapshot();
             var payload = new Dictionary<string, object>(_static)
             {
                 ["cpu"] = cpu,
@@ -309,7 +271,7 @@ namespace HudWall
             return JsonSerializer.Serialize(payload);
         }
 
-        public void Dispose() => _gpuTimer?.Dispose();
+        public void Dispose() => _gpu.Dispose();
 
         // -------------------------------------------------------------- interop
         [StructLayout(LayoutKind.Sequential)]
