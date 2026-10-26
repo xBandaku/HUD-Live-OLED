@@ -87,6 +87,8 @@ documented in [GitHub project setup](docs/GITHUB_SETUP.md).
 
 ## Optional JARVIS / SHIELD edition
 
-The independent [JARVIS / SHIELD edition](editions/jarvis/README.md) adds local neural voice and conversation, a desktop organizer, an optional native taskbar, and God's Eye View inside the SHIELD display. It keeps separate source and packaging under `editions/jarvis/`; the OLED application's source and release workflow are unchanged.
+The independent [JARVIS / SHIELD edition](editions/jarvis/README.md) adds local neural voice and conversation, a desktop organizer, an optional native taskbar, and God's Eye View inside the SHIELD display. It keeps separate source and packaging under `editions/jarvis/`. Windows CI runs recovery tests and builds both projects; OLED and JARVIS keep separate release versions and downloads.
 
 See its [build instructions](editions/jarvis/README.md) and [complete changelog](editions/jarvis/CHANGELOG.md). The repository contains clean defaults, not personal app pins, locations, API keys or model files. God's Eye source/runtime are initialized from a pinned upstream revision rather than committed as generated bundles.
+
+**JARVIS 41.0.1:** [download and patch notes](https://github.com/xBandaku/HUD-Live-OLED/releases/tag/jarvis-v41.0.1). This patch fixes audio output switching, retries desktop attachment when Explorer is late, and closes fallback feed ports reliably. Follow the edition's [update instructions](editions/jarvis/README.md#download-and-update) to retain installed settings. JARVIS settings live beside its installation; OLED settings use `%LOCALAPPDATA%\HudWall\Settings\OLED`.

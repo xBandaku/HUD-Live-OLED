@@ -1,4 +1,4 @@
-## Unreleased
+## v41.0.1 - Audio and startup recovery (October 26, 2026)
 
 - Follow changes to the default audio output within approximately 1.5 seconds, reset retired capture samples, and retry stopped or unavailable audio devices.
 - Keep launcher attachment retries running when Explorer or the HUD window is not ready after startup; recover without leaving an orphaned preview host that requires a restart.

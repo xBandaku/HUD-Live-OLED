@@ -48,7 +48,7 @@ jobs:
           retention-days: 14
 
   release:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v')
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 5

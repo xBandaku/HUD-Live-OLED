@@ -3,8 +3,8 @@
 param([string]$Output)
 $ErrorActionPreference = 'Stop'
 if (-not $Output) {
-    $major = ([xml](Get-Content (Join-Path $PSScriptRoot 'HudWall.csproj'))).Project.PropertyGroup.Version.Split('.')[0]
-    $Output = Join-Path (Split-Path $PSScriptRoot -Parent) "HUD Live JARVIS Local v$major.zip"
+    $version = ([xml](Get-Content (Join-Path $PSScriptRoot 'HudWall.csproj'))).Project.PropertyGroup.Version
+    $Output = Join-Path (Split-Path $PSScriptRoot -Parent) "HUD Live JARVIS Local v$version.zip"
 }
 
 $work = Join-Path ([IO.Path]::GetTempPath()) ('hudwall-package-' + [Guid]::NewGuid().ToString('N'))
@@ -42,5 +42,8 @@ try {
     Write-Host "Wrote $Output"
 }
 finally {
-    Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
+    $resolvedWork = [IO.Path]::GetFullPath($work)
+    $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
+    if (!$resolvedWork.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase) -or !(Split-Path $resolvedWork -Leaf).StartsWith('hudwall-package-')) { throw 'Unexpected package cleanup target.' }
+    Remove-Item -LiteralPath $resolvedWork -Recurse -Force -ErrorAction SilentlyContinue
 }

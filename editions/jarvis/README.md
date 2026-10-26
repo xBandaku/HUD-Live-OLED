@@ -2,6 +2,25 @@
 
 Windows desktop HUD with separate JARVIS and SHIELD displays, a desktop organizer, optional replacement taskbar, local voice/conversation support, and God's Eye View embedded in SHIELD.
 
+## Download and update
+
+Download the JARVIS Windows x64 ZIP and its SHA-256 checksum from the [41.0.1 release](https://github.com/xBandaku/HUD-Live-OLED/releases/tag/jarvis-v41.0.1). This edition uses its own version sequence; it is separate from OLED 16.1.0.
+
+Extract the whole ZIP before launching `Start Wallpaper.cmd`. Windows x64 and the Microsoft Edge WebView2 Runtime are required; the .NET runtime is bundled. Local AI and neural voice may require their optional setup/model downloads. God's Eye public feeds require internet access.
+
+For an update, exit HUD Live from its tray menu and back up the existing `assets` folder. Extract into a **new folder**, then copy your saved JSON settings and `monitor-colors` folder into the new `assets` folder; keep the newly shipped HTML, JavaScript, and other application assets. Do not overwrite your old installation with clean default settings. Keep the old folder until the new version starts successfully. Start the new copy once to update its automatic-startup path.
+
+Organizer configuration remains under `%USERPROFILE%\.HudWall\Organizer`; your original files stay in their existing locations. Neural models remain under `%LOCALAPPDATA%\HudWall\Models`. Preserve those directories. The encrypted OpenAI key, if configured, remains outside the installation folder. Do not share your settings backups or key file.
+
+### What's fixed in 41.0.1
+
+- Audio follows default playback-device changes within approximately 1.5 seconds and recovers after capture failure.
+- The launcher continues retrying attachment every three seconds if Explorer or the wallpaper window is late becoming available.
+- Headless feed shutdown closes its active listener, including a fallback port.
+- Windows CI now tests JARVIS recovery and builds the full JARVIS project. Physical device switching and actual Explorer restart recovery still need manual validation.
+
+See the [patch notes](CHANGELOG.md) for details. Use **Ctrl+Alt+Shift+T** to restore the Windows taskbar if needed; startup and globe troubleshooting are also described in the packaged guides.
+
 ## Build on Windows x64
 
 Requirements: .NET 10 SDK, Git, and internet for dependency restore.
