@@ -32,6 +32,7 @@ namespace HudWall
 
         private volatile GpuSample _gpu = new GpuSample();
         private System.Threading.Timer _gpuTimer;
+        private readonly NvidiaGpu _nvidia = new();
 
         private volatile bool _paused;
         internal void SetPaused(bool paused) { _paused = paused; }
@@ -49,7 +50,7 @@ namespace HudWall
         {
             CollectStatic();
             SampleCpu(); // prime deltas
-            _gpuTimer = new System.Threading.Timer(_ => PollGpu(), null, 300, 900);
+            _gpuTimer = new System.Threading.Timer(_ => PollGpu(), null, 300, 2000);
         }
 
         // ------------------------------------------------------------------ static
@@ -82,27 +83,8 @@ namespace HudWall
             if (GlobalMemoryStatusEx(ref mem)) totalRam = (long)mem.ullTotalPhys;
             _static["ram_total_gb"] = Math.Round(totalRam / 1073741824.0, 1);
 
-            string gpuName = null, gpuVram = null;
-            try
-            {
-                var psi = new ProcessStartInfo("nvidia-smi",
-                    "--query-gpu=name,memory.total --format=csv,noheader,nounits")
-                { RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
-                using var p = Process.Start(psi);
-                string line = p.StandardOutput.ReadLine();
-                p.WaitForExit(2500);
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    var parts = line.Split(',');
-                    if (parts.Length >= 2)
-                    {
-                        gpuName = parts[0].Trim();
-                        if (double.TryParse(parts[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var mb))
-                            gpuVram = Math.Round(mb / 1024.0, 1).ToString(CultureInfo.InvariantCulture);
-                    }
-                }
-            }
-            catch { /* nvidia-smi optional */ }
+            string gpuName = _nvidia.Name;
+            string gpuVram = _nvidia.TotalGiB?.ToString(CultureInfo.InvariantCulture);
 
             if (string.IsNullOrWhiteSpace(gpuName))
                 gpuName = ReadReg(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000", "DriverDesc");
@@ -206,31 +188,9 @@ namespace HudWall
             if (_paused) return;
             try
             {
-                var psi = new ProcessStartInfo("nvidia-smi",
-                    "--query-gpu=utilization.gpu,temperature.gpu,memory.used,memory.total --format=csv,noheader,nounits")
-                { RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
-                using var p = Process.Start(psi);
-                string line = p.StandardOutput.ReadLine();
-                p.WaitForExit(2500);
-                if (string.IsNullOrWhiteSpace(line)) return;
-                var f = line.Split(',');
-                if (f.Length < 4) return;
-                var s = new GpuSample
-                {
-                    Util = ParseD(f[0]),
-                    TempC = ParseD(f[1]),
-                };
-                double? used = ParseD(f[2]), tot = ParseD(f[3]);
-                if (used.HasValue && tot.HasValue && tot.Value > 0)
-                    s.VramPct = Math.Round(used.Value / tot.Value * 100.0, 1);
-                _gpu = s;
+                _gpu = _nvidia.Sample();
             }
-            catch { /* no nvidia-smi: leave last sample */ }
-        }
-
-        private static double? ParseD(string s)
-        {
-            return double.TryParse(s.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : (double?)null;
+            catch { /* Optional driver telemetry: keep the last available sample. */ }
         }
 
         // ------------------------------------------------------------------- json
@@ -318,7 +278,11 @@ namespace HudWall
             return new { ac=power.PowerLineStatus.ToString(), battery_percent=available && power.BatteryLifePercent>=0 && power.BatteryLifePercent<=1 ? (int?)Math.Round(power.BatteryLifePercent*100):null };
         }
 
-        public void Dispose() => _gpuTimer?.Dispose();
+        public void Dispose()
+        {
+            _gpuTimer?.Dispose();
+            _nvidia.Dispose();
+        }
 
         // -------------------------------------------------------------- interop
         [StructLayout(LayoutKind.Sequential)]
