@@ -1,4 +1,4 @@
-## Unreleased - Taskbar persistence
+## v41.0.2 - Taskbar persistence and settings recovery (October 26, 2026)
 
 - Keep the visible taskbar flush with the physical monitor bottom instead of placing it above a stale Windows taskbar reservation; repair placement at display and DPI changes.
 - Preserve fullscreen hiding on a monitor when focus moves elsewhere, while allowing a normal app placed above that video/game to show its taskbar.

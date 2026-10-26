@@ -1,3 +1,13 @@
+NEW IN v41.0.2: PERSISTENT, BOTTOM-ALIGNED TASKBAR
+HUD taskbars recover across virtual desktops, display/resume and Explorer changes.
+The visible bar stays at the physical monitor bottom. Fullscreen video remains
+protected when you focus another monitor. Empty pin lists survive restart, and
+invalid audio-setting types recover a backup or safe default instead of stopping
+startup. Actual shell/display behavior still needs validation on your setup.
+Use tray > HUD taskbar > Replace Windows taskbar to enable it. After updating,
+exit the old copy and start the new launcher; toggle replacement off/on if needed.
+Ctrl+Alt+Shift+T restores Windows taskbars. See HUD TASKBAR.txt for details.
+
 NEW IN v41.0.1: AUDIO AND STARTUP RECOVERY
 Audio follows the default Windows multimedia playback device within about
 1.5 seconds. If Explorer is not ready when you start the wallpaper, the launcher
@@ -20,7 +30,7 @@ NEW IN v39: GOD'S EYE VIEW INSIDE SHIELD
 Use tray > SHIELD / God's Eye for globe presets and the interactive console.
 See GODS EYE.txt for keyless setup, voice shortcuts and source credits.
 
-HUD LIVE - JARVIS LOCAL EDITION v41.0.1
+HUD LIVE - JARVIS LOCAL EDITION v41.0.2
 
 NEW IN v37: AVENGERS AUDIT AND MODERN TASKBAR
 The dock now uses borderless icon tiles and running-app indicators.

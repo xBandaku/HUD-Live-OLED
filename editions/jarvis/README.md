@@ -4,7 +4,7 @@ Windows desktop HUD with separate JARVIS and SHIELD displays, a desktop organize
 
 ## Download and update
 
-Download the JARVIS Windows x64 ZIP and its SHA-256 checksum from the [41.0.1 release](https://github.com/xBandaku/HUD-Live-OLED/releases/tag/jarvis-v41.0.1). This edition uses its own version sequence; it is separate from OLED 16.1.0.
+Download the JARVIS Windows x64 ZIP and its SHA-256 checksum from the [41.0.2 release](https://github.com/xBandaku/HUD-Live-OLED/releases/tag/jarvis-v41.0.2). This edition uses its own version sequence; it is separate from OLED 16.1.0.
 
 Extract the whole ZIP before launching `Start Wallpaper.cmd`. Windows x64 and the Microsoft Edge WebView2 Runtime are required; the .NET runtime is bundled. Local AI and neural voice may require their optional setup/model downloads. God's Eye public feeds require internet access.
 
@@ -12,7 +12,15 @@ For an update, exit HUD Live from its tray menu and back up the existing `assets
 
 Organizer configuration remains under `%USERPROFILE%\.HudWall\Organizer`; your original files stay in their existing locations. Neural models remain under `%LOCALAPPDATA%\HudWall\Models`. Preserve those directories. The encrypted OpenAI key, if configured, remains outside the installation folder. Do not share your settings backups or key file.
 
-### What's fixed in 41.0.1
+### What's fixed in 41.0.2
+
+- Taskbar persistence across virtual desktops, Explorer/display changes and resume, while remaining hidden for fullscreen games and videos.
+- Visible taskbars anchored to the physical monitor bottom, including mixed-DPI and negative-origin displays, instead of floating above Windows' old reservation.
+- Fullscreen protection on one monitor remains when you focus an app on another. A normal app covering the video on the same monitor restores its taskbar.
+- Intentionally empty pin lists survive restart/re-enable. Edited audio settings with wrong JSON types recover a valid backup or safe default instead of stopping startup.
+- All earlier 41.0.1 recovery fixes remain included. The 30 automated scenarios pass; actual virtual-desktop/fullscreen transitions and bottom alignment on your display still need manual validation.
+
+### Included from 41.0.1
 
 - Audio follows default playback-device changes within approximately 1.5 seconds and recovers after capture failure.
 - The launcher continues retrying attachment every three seconds if Explorer or the wallpaper window is late becoming available.
@@ -36,7 +44,7 @@ Start `artifacts/HUDWall/Start Wallpaper.cmd`. The launcher registers Windows st
 
 If Explorer is not ready at startup, the launcher continues retrying desktop attachment every three seconds until the host exits. Audio capture follows changes to the default multimedia playback device within approximately 1.5 seconds.
 
-## HUD taskbar persistence (next build)
+## HUD taskbar persistence
 
 Enable **Tray → HUD taskbar → Replace Windows taskbar**. Each monitor keeps its own JARVIS/SHIELD styling. The bars recover after desktop switches, display changes, resume, or Explorer changes without activating themselves. They remain above ordinary apps, including maximized windows, and hide on monitors covered by a fullscreen game or video. Returning from fullscreen shows them again.
 
@@ -47,6 +55,8 @@ The Windows tray button still returns to native taskbars for 25 seconds. **Ctrl+
 The visible bar is anchored to the physical bottom edge, including mixed-DPI and negative-origin monitors, even while Windows still reports its old taskbar reservation. Fullscreen video on another monitor stays protected when you focus an app elsewhere; a normal app covering that video on the same monitor brings the taskbar back. An intentionally empty pin list now survives restart/re-enable. Existing saved pin arrays are preserved; only fresh settings import Windows pins or fallback shortcuts.
 
 Edited audio settings with invalid JSON types no longer stop startup: the loader tries a valid backup and otherwise uses 100% sensitivity. Supported numeric values remain clamped to 0–300%.
+
+If you still see the old taskbar gap after updating, confirm the old HUD Live process has exited and start the launcher from the newly extracted folder. Toggle **Replace Windows taskbar** off and back on to recreate its windows. Keep the updated executable and launcher together. Recovery logs are under `%LOCALAPPDATA%\HudWall\hudwall.log`; record your monitor resolutions and Windows scaling when reporting a placement issue. Do not delete settings or restart Explorer as an update step.
 
 ## Recovery tests
 

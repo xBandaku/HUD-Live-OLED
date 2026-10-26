@@ -1,4 +1,4 @@
-PERSISTENCE (next build)
+PERSISTENCE (v41.0.2)
 The visible bar stays flush with the physical bottom edge instead of floating
 above Windows' old reserved taskbar space. Empty pin lists stay empty after a
 restart. Fullscreen video stays protected when focus moves to another monitor.
