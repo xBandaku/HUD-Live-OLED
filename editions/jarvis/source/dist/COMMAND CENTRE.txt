@@ -1,0 +1,26 @@
+AVENGERS COMMAND CENTRE - v33
+
+CONTROLS
+Tray > Command centre. Auto expands contextual information for requests and settles to Ambient after the response and idle period. Ambient keeps the scene quiet; Command keeps context and the timeline open. Showcase runs an explicitly labelled simulated presentation and does not launch apps, query AI, or issue PC commands. A real voice request returns to Auto.
+
+Say Jarvis command mode / mission mode / ambient mode / automatic mode / showcase mode / stop showcase. The native listening rules still apply: headphones can accept natural follow-ups; speakers use Jarvis.
+
+ROUTINES
+Say Jarvis prepare my workspace (same as work mode), or Jarvis gaming mode. Work mode initially launches the configured browser alias; gaming mode initially attempts Steam and Discord. Missing aliases are reported, never invented. Tray > Command centre > Configure app routines edits up to eight routines with up to eight apps each. Add app aliases through JARVIS voice > Configure app commands first. Routines launch apps only when explicitly requested and respect AI settings > PC tools.
+
+DISPLAY
+JARVIS leads the conversation; SHIELD shows supporting context. Each display keeps its own interface and monitor-safe layout. Weather requests show a weather card after lookup, system requests bring live resource data forward, and other tasks show request/response context. The latest three actual session events appear on the HUD; Session timeline shows up to 30 events. This timeline is not written to disk. Existing conversation history behavior is unchanged.
+
+Alerts use configured display thresholds: memory >=90%, GPU >=85 C, drive >=95% -> amber; memory >=97% or drive >=99% -> red resource pressure. These indicators do not shut down apps or change the PC. They are presentation thresholds, not hardware-specific thermal ratings.
+
+SOUND AND MOTION
+Interface sound effects have their own toggle and volume (0/8/15/25/40%). Cues use the selected JARVIS output. Motion obeys reduced/off settings and pause rules. Background motion is subtle; the whole HUD does not drift. Short response sounds may overlap the beginning of speech at a low level; cues during speech are attenuated.
+
+MODELS
+The HUD and Local model readiness menu show model availability/engine state. Missing Kokoro voice and Whisper recognition models download automatically and are hash-verified before activation. They stay in %LocalAppData%\HudWall\Models and are not bundled in this ZIP. Network failures leave the existing Windows fallback available; use Check / install missing speech models to retry. Ollama/conversation-model installation still uses Setup Local AI.cmd.
+
+NEURAL VOICE
+Speech is synthesized in sentence-sized chunks. Playback can start after the first chunk, with later chunks prepared in parallel with playback. Bounded buffering and generation cancellation prevent an interrupted reply resuming. Reactor envelopes are sent for each played chunk.
+
+PREVIEW
+The preview PNG uses test requests/telemetry to demonstrate the layout. Showcase itself labels every simulated step. Neither is evidence of a real PC action.

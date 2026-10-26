@@ -1,0 +1,115 @@
+/* Cinematic JARVIS: boot sequence and voice-reactive reactor. Boot runs in Full motion only (Reduced/Off disable all
+   animations); every rule keys off html[data-boot] so the normal HUD is untouched once the sequence ends. */
+
+html[data-boot="pending"] #wall{visibility:hidden;}
+
+/* ---------------------------------------------------------------- boot timeline (ms from ignition) */
+html[data-boot="run"] .unit:not([data-paused="true"]) .core-reticle{animation:boot-ignite 1.1s cubic-bezier(.2,.9,.25,1.2) 0s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .agency-seal{animation:boot-ignite 1.1s cubic-bezier(.2,.9,.25,1.2) .1s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .reactor-lattice{animation:boot-lattice 1.6s cubic-bezier(.16,.8,.3,1.08) .2s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .reactor-outer{animation:boot-spin-cw 2.6s cubic-bezier(.1,.75,.18,1) .12s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .reactor-inner{animation:boot-spin-ccw 2.6s cubic-bezier(.1,.75,.18,1) .18s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .ring{animation:boot-fade-scale .9s ease-out 1s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .clock{animation:boot-focus 1s ease-out 1.25s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .orbital-label{animation:boot-fade .6s ease-out .5s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .core-label{animation:boot-fade .5s ease-out .3s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .bg,
+html[data-boot="run"] .unit:not([data-paused="true"]) .fx.grid{animation:boot-fade 1.4s ease-out .4s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .hud-bezel{animation:boot-bezel 1s cubic-bezier(.3,.7,.2,1) .7s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .top{animation:boot-wipe .9s cubic-bezier(.3,.7,.2,1) 1.5s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .main>.panel:first-child{animation:boot-materialize .9s ease-out 2.3s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .main>.panel:last-child{animation:boot-materialize .9s ease-out 2.5s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .main>.panel:first-child::before{animation:boot-bar .7s ease-out 2.6s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .main>.panel:last-child::before{animation:boot-bar .7s ease-out 2.8s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .shield-board{animation:boot-materialize 1s ease-out 1.2s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .core-caption,
+html[data-boot="run"] .unit:not([data-paused="true"]) .meta-row{animation:boot-rise .7s ease-out 2.7s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .status-strip{animation:boot-rise .7s ease-out 2.8s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .history-strip{animation:boot-rise .7s ease-out 3s both;}
+html[data-boot="run"] .unit:not([data-paused="true"]) .audio{animation:boot-rise .7s ease-out 3.2s both;}
+
+@keyframes boot-ignite{0%{opacity:0;scale:.05;filter:brightness(4)}45%{opacity:1;scale:1.18;filter:brightness(2.2)}100%{opacity:1;scale:1;filter:none}}
+@keyframes boot-lattice{0%{opacity:0;scale:.55}70%{scale:1.04}100%{scale:1}}
+@keyframes boot-spin-cw{0%{opacity:0;scale:.35;rotate:-640deg}30%{opacity:1}100%{opacity:1;scale:1;rotate:0deg}}
+@keyframes boot-spin-ccw{0%{opacity:0;scale:.3;rotate:760deg}30%{opacity:.45}100%{scale:1;rotate:0deg}}
+@keyframes boot-fade{from{opacity:0}}
+@keyframes boot-fade-scale{from{opacity:0;scale:.86}}
+@keyframes boot-focus{from{opacity:0;filter:blur(10px) brightness(2.5);scale:1.08}}
+@keyframes boot-bezel{from{opacity:0;background-size:0 2px,0 2px,0 2px,0 2px}}
+@keyframes boot-wipe{from{opacity:.2;clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes boot-materialize{0%{opacity:0;translate:0 22px;filter:brightness(2.6) saturate(.3)}60%{opacity:1;filter:brightness(1.5)}100%{opacity:1;translate:0 0;filter:none}}
+@keyframes boot-bar{from{width:0}}
+@keyframes boot-rise{from{opacity:0;translate:0 16px}}
+
+/* Light sweep down each display, ignition shockwaves and the boot console (elements added by cinematic.js) */
+.boot-sweep{position:absolute;left:0;right:0;top:-160px;height:160px;pointer-events:none;z-index:40;
+  background:linear-gradient(transparent,rgba(var(--accent-rgb),.10) 70%,rgba(var(--accent-rgb),.55) 98%,rgba(255,255,255,.9));
+  animation:boot-sweep 1.9s cubic-bezier(.45,.05,.55,.95) .65s both;}
+@keyframes boot-sweep{from{top:-160px;opacity:1}88%{opacity:1}to{top:100%;opacity:0}}
+
+.boot-shock{position:absolute;inset:0;border-radius:50%;border:3px solid var(--accent);pointer-events:none;z-index:3;
+  box-shadow:0 0 40px rgba(var(--accent-rgb),.8),inset 0 0 40px rgba(var(--accent-rgb),.5);
+  animation:boot-shock 1.1s cubic-bezier(.1,.6,.3,1) .1s both;}
+.boot-shock.online{animation-delay:3.5s;animation-duration:1.3s;}
+@keyframes boot-shock{0%{opacity:0;scale:.1}12%{opacity:1}100%{opacity:0;scale:1.9}}
+
+.boot-console{position:absolute;left:50%;top:66%;width:820px;translate:-50% 0;z-index:41;pointer-events:none;
+  font:15px/1.55 Consolas,monospace;letter-spacing:.06em;color:var(--accent);white-space:pre;
+  padding:16px 22px;border-left:3px solid var(--accent);
+  background:linear-gradient(90deg,rgba(var(--accent-rgb),.10),rgba(2,10,18,.6) 70%,transparent);
+  text-shadow:0 0 8px rgba(var(--accent-rgb),.55);
+  animation:boot-console 3.4s linear .25s both;}
+.boot-console .ok{color:var(--accent-2);}
+.boot-console .final{color:#ffc27a;text-shadow:0 0 12px #ffc27a88;}
+.boot-console .caret{display:inline-block;width:.6em;height:1.05em;vertical-align:-2px;background:var(--accent);margin-left:2px;}
+@keyframes boot-console{0%{opacity:0}4%{opacity:1}82%{opacity:1}100%{opacity:0}}
+
+/* ---------------------------------------------------------------- voice-reactive reactor */
+.voice-core{position:absolute;inset:20%;border-radius:50%;pointer-events:none;z-index:1;mix-blend-mode:screen;
+  background:radial-gradient(circle,rgba(var(--accent-rgb),.5),rgba(var(--accent-rgb),.14) 46%,transparent 70%);
+  opacity:var(--voice,0);scale:calc(.92 + var(--voice,0) * .22);}
+.voice-wave{position:absolute;left:-45px;top:-45px;width:calc(100% + 90px);height:calc(100% + 90px);pointer-events:none;z-index:1;}
+html[data-show-reactor="false"] .voice-core,html[data-show-reactor="false"] .voice-wave,
+.unit[data-interface="SHIELD"] .voice-core,.unit[data-interface="SHIELD"] .voice-wave,
+html[data-motion="Reduced"] .voice-wave{display:none;}
+html[data-motion="Reduced"] .voice-core{opacity:0;}
+
+/* ---------------------------------------------------------------- S.H.I.E.L.D. boot */
+/* The board frame appears first so the insignia can authenticate inside it; the map lights up as the scan passes. */
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .main>.center{animation:boot-fade .5s ease-out 0s both;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .shield-board{animation:boot-fade .5s ease-out .9s both;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .tactical-map>rect{animation:boot-fade 1s ease-out 1s both;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .geo-country{animation:boot-country 1s ease-out var(--boot-d,1.4s) both;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .geo-reference-cities>g{transform-box:fill-box;transform-origin:center;animation:boot-ping .7s cubic-bezier(.2,1.6,.4,1) 2.9s both;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .geo-reference-cities>g:nth-child(2){animation-delay:3.02s;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .geo-reference-cities>g:nth-child(3){animation-delay:3.14s;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .geo-reference-cities>g:nth-child(4){animation-delay:3.26s;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .geo-legend,
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .tactical-readouts{animation:boot-rise .7s ease-out 2.9s both;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .clock{animation:boot-focus .8s ease-out 1.7s both;}
+html[data-boot="run"] .unit[data-interface="SHIELD"]:not([data-paused="true"]) .agency-seal{animation:boot-ignite 1s cubic-bezier(.2,.9,.25,1.2) 1.5s both;}
+
+@keyframes boot-country{0%{fill-opacity:0;stroke-opacity:0}35%{fill:#9fd8ff;fill-opacity:.85;stroke:#e6f6ff;stroke-opacity:1}100%{}}
+@keyframes boot-ping{0%{opacity:0;scale:0}60%{opacity:1;scale:1.6}100%{opacity:1;scale:1}}
+
+.boot-insignia{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;pointer-events:none;z-index:30;mix-blend-mode:screen;
+  animation:boot-insignia 2.3s ease-in-out .05s both;}
+/* The logo has a black field: the whole overlay screen-blends (its animation isolates children), so black drops out. */
+.boot-insignia svg{width:330px;height:330px;}
+.boot-insignia::before{content:"";position:absolute;width:430px;height:430px;top:50%;left:50%;margin:-245px 0 0 -215px;border-radius:50%;
+  border:2px dashed rgba(159,216,255,.55);box-shadow:0 0 30px rgba(159,216,255,.25),inset 0 0 30px rgba(159,216,255,.15);animation:boot-orbit 2.3s linear both;}
+.boot-auth{font:15px Consolas,monospace;letter-spacing:.4em;color:#d6ecff;text-shadow:0 0 10px rgba(159,216,255,.7);}
+.boot-auth.granted{color:#ffc27a;text-shadow:0 0 14px #ffc27a99;}
+@keyframes boot-insignia{0%{opacity:0;scale:.62;filter:blur(8px) brightness(2.5)}18%{opacity:1;scale:1;filter:none}72%{opacity:1;scale:1}100%{opacity:0;scale:1.12;filter:blur(4px)}}
+@keyframes boot-orbit{from{rotate:0deg}to{rotate:300deg}}
+.unit[data-interface="SHIELD"] .boot-console{left:36%;top:58%;border-left-color:#ffc27a;color:#cfe6fa;
+  background:linear-gradient(90deg,rgba(159,216,255,.10),rgba(3,14,26,.7) 70%,transparent);text-shadow:0 0 8px rgba(159,216,255,.45);}
+.unit[data-interface="SHIELD"] .boot-console .ok{color:#9fd8ff;}
+.unit[data-interface="SHIELD"] .boot-console .caret{background:#cfe6fa;}
+
+/* ---------------------------------------------------------------- S.H.I.E.L.D. comms */
+.comms-wave{display:none;position:absolute;left:0;right:0;bottom:92px;width:100%;height:86px;pointer-events:none;z-index:4;}
+.unit[data-interface="SHIELD"] .comms-wave{display:block;}
+html[data-motion="Reduced"] .comms-wave,html[data-motion="Off"] .comms-wave{display:none!important;}
+.unit[data-interface="SHIELD"] .agency-seal,.unit[data-interface="SHIELD"] .brand-seal{
+  filter:drop-shadow(0 0 calc(var(--voice,0) * 20px) rgb(159 216 255 / calc(var(--voice,0) * .95)));}

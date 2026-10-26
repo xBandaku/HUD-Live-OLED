@@ -1,0 +1,7 @@
+JARVIS command centre ? v22
+
+The desktop now has a layered reactor and angular telemetry panels. Existing tray color, monitor, transparency, animation and pause settings still apply.
+
+The voice display shows what recognition heard, your current request phase, JARVIS's response and recent app/tool activity. These are actual session states; the preview image uses an example transcript for demonstration. Spoken replies still pronounce VEYDR as Vader.
+
+This release changes the interface. It does not add autonomous screen reading or new PC permissions. The whole HUD stays stationary while its internal reactor rings animate. Use tray FPS/animation controls to adjust motion.

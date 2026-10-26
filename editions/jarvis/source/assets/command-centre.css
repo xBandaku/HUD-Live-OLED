@@ -1,0 +1,31 @@
+.command-backdrop{position:absolute;inset:0;pointer-events:none;opacity:.35;background:linear-gradient(120deg,transparent 30%,rgba(var(--accent-rgb),.035) 50%,transparent 70%);}
+.command-backdrop::after{content:"";position:absolute;inset:55px;border:1px solid rgba(var(--accent-rgb),.07);clip-path:polygon(0 0,28% 0,32% 5%,70% 5%,74% 0,100% 0,100% 100%,74% 100%,70% 95%,32% 95%,28% 100%,0 100%);}
+.command-deck{position:absolute;z-index:8;left:50%;bottom:0;transform:translateX(-50%);width:min(96%,900px);max-height:290px;overflow:hidden;background:rgba(2,11,20,.97);border:1px solid rgba(var(--accent-rgb),.55);box-shadow:0 12px 40px #0006,inset 3px 0 rgba(var(--accent-rgb),.4);font-family:Consolas,monospace;}
+.command-deck header{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(var(--accent-rgb),.2);font-size:10px;letter-spacing:.08em;}
+.scene-name{color:#ffc27a;font-weight:400;}.scene-link{color:var(--accent-2);}.scene-model{font-style:normal;font-size:9px;color:var(--dim);max-width:45%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.deck-content{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;padding:18px;}
+.command-deck label{font-size:9px;color:var(--accent);letter-spacing:.15em;display:block;margin-bottom:8px;}
+.context-card{min-width:0;}.context-card h3{font:500 18px 'Segoe UI',sans-serif;margin:0 0 10px;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.context-card p{font:14px/1.5 'Segoe UI',sans-serif;color:var(--text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;}
+.context-metrics{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}.context-metrics span{padding:5px;border:1px solid rgba(var(--accent-rgb),.2);font-size:10px;color:var(--accent-2);}
+.session-rail{min-width:0;border-left:1px solid rgba(var(--accent-rgb),.2);padding-left:15px;}.session-rail ol{list-style:none;padding:0;margin:0;}.session-rail li{font-size:11px;color:var(--text);margin-bottom:10px;overflow:hidden;}.session-rail time{display:block;font-size:9px;color:var(--dim);margin-bottom:3px;}.session-rail li span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.showcase-notice{padding:9px 16px;font-size:11px;color:#ffc27a;background:#5a3d182e;border-bottom:1px solid #ffc27a55;letter-spacing:.08em;}.showcase-notice[hidden],.system-attention[hidden]{display:none;}
+.system-attention{font:12px/1.4 Consolas,monospace;color:#ffd19b;padding:10px 16px;background:#6e39052e;border-top:1px solid #ffc27a55;}
+.unit[data-command-scene="ambient"] .deck-content{display:none;}.unit[data-command-scene="ambient"] .command-deck{opacity:.86;bottom:-5px;}
+
+.unit[data-interface="SHIELD"] .command-deck{left:auto;right:34px;top:112px;bottom:auto;transform:none;width:min(640px,calc(100% - 68px));max-height:290px;}
+.unit[data-interface="SHIELD"][data-command-scene="ambient"] .command-deck{top:auto;bottom:103px;}
+.unit[data-attention="attention"] .command-deck{border-color:#ffc27a;}
+.unit[data-portrait="true"] .command-deck{max-height:310px;width:94%;}.unit[data-portrait="true"] .scene-link{display:none;}
+html[data-command-motion="full"] .unit:not([data-paused="true"]) .command-backdrop::after{animation:command-breathe 18s ease-in-out infinite;}
+html[data-playback-paused="true"] .command-backdrop::after{animation:none!important;}
+@keyframes command-breathe{0%,100%{opacity:.25}50%{opacity:.8}}
+@media(prefers-reduced-motion:reduce){.command-backdrop::after{animation:none!important;}}
+
+.unit[data-attention="critical"] .command-deck{border-color:#ff7474;}.unit[data-attention="critical"] .system-attention{color:#ffc7c7;background:#67191955;}
+
+/* A complete card owns its measured rectangle; never crop its last line to fit a gap. */
+.command-deck{max-height:none;}
+.command-deck header{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 14px;}
+.command-deck .scene-link{overflow-wrap:anywhere;}
+.command-deck .scene-model{grid-column:1/-1;max-width:none;white-space:normal;overflow:visible;line-height:1.35;}

@@ -1,0 +1,31 @@
+SHIELD / GOD'S EYE VIEW - v41
+
+The SHIELD map now embeds the actual God's Eye View application by Bilawal Sidhu.
+Right-click the HUD tray icon > SHIELD / God's Eye.
+
+Show integrated 3D globe: switch between the embedded globe and the original archive atlas.
+Presets: Global, Air traffic, Space, Earthquakes.
+Focus submenu: United States or World. Focus is saved and applies to new interactive consoles too.
+Open interactive console: opens a native HUD window with the full upstream controls, search, zoom, layer settings, tours and provider configuration. The wallpaper remains click-through, so use this window to interact.
+Restart local globe: retries the local server and reloads the embedded view.
+
+Voice shortcuts:
+  Jarvis, show God's Eye.
+  Jarvis, show global globe.
+  Jarvis, show air traffic.
+  Jarvis, show satellites.
+  Jarvis, show earthquakes.
+  Jarvis, show archive map.
+  Jarvis, focus on the United States.
+  Jarvis, show whole globe.
+
+Keyless start uses Esri imagery and public feeds. Internet is required. Individual sources can be delayed, unavailable or rate-limited; a running globe does not guarantee every layer is live. Optional photorealistic Google tiles and some providers require your own keys and terms. Add those through the upstream console if desired. HudWall's Ollama conversation and neural voice remain separate; God's Eye's own AI voice features require their own provider configuration.
+
+A private loopback server starts with HudWall, uses a dynamically selected local port, and exits when HudWall stops. No Node installation or manual npm commands are required in the delivered package. The embedded renderer follows HUD/monitor pause and is capped at 30 FPS; data refreshes may continue while rendering is paused. Switching to the archive map stops this server. The original atlas remains available while startup is pending or if the globe cannot initialize.
+
+Your original JARVIS display, organizer profile and saved settings are retained. The interactive console has the matching custom application/taskbar icon.
+
+Credits: https://github.com/bilawalsidhu/gods-eye-view
+MIT License: gods-eye/LICENSE
+Third-party/provider notices: gods-eye/THIRD_PARTY_NOTICES.md
+Local integration and rebuild details: gods-eye/HUDWALL-INTEGRATION.txt

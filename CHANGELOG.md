@@ -1,3 +1,9 @@
+## Unreleased - optional JARVIS / SHIELD edition
+
+- Add the v41 JARVIS / SHIELD source edition under `editions/jarvis/` without replacing the OLED application or its release scripts.
+- Include voice/conversation, organizer, optional taskbar, full-desktop bounds recovery and United States / World God's Eye focus controls.
+- Include clean defaults, custom icons, build guides, pinned upstream bootstrap/patch, and the complete edition history. Exclude personal settings, API keys, model weights and generated runtimes.
+
 # HUD Live — Standalone Changelog
 
 **Latest changes: October 25, 2026**
