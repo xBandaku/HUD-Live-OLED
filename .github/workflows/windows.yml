@@ -28,6 +28,13 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Run regression tests
         run: dotnet run --project tests/Tests.csproj -c Release
+      - name: Run JARVIS recovery tests
+        run: dotnet run --project editions/jarvis/tests/Recovery.Tests.csproj -c Release
+      - name: Test JARVIS launcher recovery
+        shell: pwsh
+        run: ./editions/jarvis/tests/Launcher.Tests.ps1
+      - name: Build JARVIS
+        run: dotnet build editions/jarvis/source/HudWall.csproj -c Release --no-incremental
       - name: Build Windows ZIP
         shell: pwsh
         run: ./scripts/Build-Release.ps1
@@ -41,7 +48,7 @@ jobs:
           retention-days: 14
 
   release:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v')
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 5

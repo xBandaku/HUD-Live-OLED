@@ -1,4 +1,10 @@
-## Unreleased - optional JARVIS / SHIELD edition
+## JARVIS / SHIELD v41.0.1 - Recovery patch (October 26, 2026)
+
+- Fix default audio output switching, persistent launcher attachment retries, and fallback feed-port cleanup in the JARVIS edition.
+- Add nine JARVIS recovery checks and a full JARVIS build to Windows CI; retain all 13 OLED regression checks.
+- Document separate edition downloads, requirements, update/back-up steps, and validation limits. OLED remains at 16.1.0.
+
+## JARVIS / SHIELD v41 - Source edition
 
 - Add the v41 JARVIS / SHIELD source edition under `editions/jarvis/` without replacing the OLED application or its release scripts.
 - Include voice/conversation, organizer, optional taskbar, full-desktop bounds recovery and United States / World God's Eye focus controls.

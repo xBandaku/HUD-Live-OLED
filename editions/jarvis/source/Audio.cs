@@ -1,5 +1,3 @@
-using System.Drawing;
-using System.Windows.Forms;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,6 +9,49 @@ using NAudio.Wave;
 
 namespace HudWall
 {
+    internal interface ILoopbackSession : IDisposable
+    {
+        string DeviceName { get; }
+        WaveFormat WaveFormat { get; }
+        event EventHandler<WaveInEventArgs> DataAvailable;
+        event EventHandler<StoppedEventArgs> RecordingStopped;
+        void StartRecording();
+    }
+
+    internal sealed class LoopbackSession : ILoopbackSession
+    {
+        private readonly MMDevice _device;
+        private readonly WasapiLoopbackCapture _capture;
+        public string DeviceName => _device.FriendlyName;
+        public WaveFormat WaveFormat => _capture.WaveFormat;
+        public event EventHandler<WaveInEventArgs> DataAvailable;
+        public event EventHandler<StoppedEventArgs> RecordingStopped;
+
+        internal LoopbackSession(string deviceId)
+        {
+            using var enumerator = new MMDeviceEnumerator();
+            _device = enumerator.GetDevice(deviceId);
+            try { _capture = new WasapiLoopbackCapture(_device); }
+            catch { _device.Dispose(); throw; }
+            _capture.DataAvailable += (_, e) => DataAvailable?.Invoke(this, e);
+            _capture.RecordingStopped += (_, e) => RecordingStopped?.Invoke(this, e);
+        }
+
+        public void StartRecording() => _capture.StartRecording();
+        public void Dispose()
+        {
+            try { _capture.Dispose(); }
+            finally { _device.Dispose(); }
+        }
+
+        internal static string DefaultDeviceId()
+        {
+            using var enumerator = new MMDeviceEnumerator();
+            using var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            return device.ID;
+        }
+    }
+
     /// <summary>
     /// Captures the default playback device through WASAPI loopback and turns it
     /// into 56 log-spaced normalized bands, in-process (no microphone).
@@ -28,7 +69,11 @@ namespace HudWall
         private readonly int[] _binStart = new int[Bands];
         private readonly int[] _binEnd = new int[Bands];
 
-        private WasapiLoopbackCapture _cap;
+        private ILoopbackSession _cap;
+        private readonly object _lifecycle = new();
+        private readonly Func<string> _defaultDeviceId;
+        private readonly Func<string, ILoopbackSession> _openSession;
+        private string _deviceId;
         private volatile bool _disposed;
         private bool _ok;
         private string _err = "starting";
@@ -38,42 +83,71 @@ namespace HudWall
         private double _lastTs;
         private readonly System.Threading.Timer _retry;
 
-        public AudioCapture()
+        public AudioCapture() : this(LoopbackSession.DefaultDeviceId, id => new LoopbackSession(id)) { }
+
+        internal AudioCapture(Func<string> defaultDeviceId, Func<string, ILoopbackSession> openSession, bool startTimer = true)
         {
-            _retry = new System.Threading.Timer(_ => Start(), null, 0, Timeout.Infinite);
+            _defaultDeviceId = defaultDeviceId;
+            _openSession = openSession;
+            _retry = new System.Threading.Timer(_ => PollDevice(), null, Timeout.Infinite, Timeout.Infinite);
+            if (startTimer) _retry.Change(0, 1500);
         }
 
-        private void Start()
+        internal void PollDevice()
         {
-            try
+            lock (_lifecycle)
             {
-                if (_disposed || _cap != null) return;
-                var enumerator = new MMDeviceEnumerator();
-                var dev = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-                _device = dev.FriendlyName;
-
-                var cap = new WasapiLoopbackCapture(dev);
-                _rate = cap.WaveFormat.SampleRate;
-                BuildBandMap(_rate);
-                cap.DataAvailable += OnData;
-                cap.RecordingStopped += (s, e) =>
+                if (_disposed) return;
+                try
                 {
-                    lock (_sync) { _ok = false; _err = e.Exception?.Message ?? "stopped"; }
-                    try { cap.Dispose(); } catch { }
-                    _cap = null;
-                    if (!_disposed) { try { _retry.Change(1500, Timeout.Infinite); } catch (ObjectDisposedException) { } }
-                };
-                if (_disposed) { cap.Dispose(); return; }
-                cap.StartRecording();
-                _cap = cap;
-                if (_disposed) { try { cap.StopRecording(); cap.Dispose(); } catch { } _cap = null; return; }
-                lock (_sync) { _ok = true; _err = null; }
+                    string deviceId = _defaultDeviceId();
+                    lock (_sync) { if (_cap != null && _ok && _deviceId == deviceId) return; }
+                    ReleaseSession();
+                    var cap = _openSession(deviceId);
+                    lock (_sync)
+                    {
+                        _cap = cap;
+                        _deviceId = deviceId;
+                        _device = cap.DeviceName;
+                        _rate = cap.WaveFormat.SampleRate;
+                        BuildBandMap(_rate);
+                    }
+                    cap.DataAvailable += OnData;
+                    cap.RecordingStopped += (s, e) =>
+                    {
+                        lock (_sync)
+                        {
+                            if (!ReferenceEquals(_cap, cap)) return;
+                            _ok = false;
+                            _err = e.Exception?.Message ?? "stopped";
+                        }
+                    };
+                    lock (_sync) { _ok = true; _err = null; }
+                    cap.StartRecording();
+                }
+                catch (Exception ex)
+                {
+                    ReleaseSession();
+                    lock (_sync) { _ok = false; _err = ex.GetType().Name + ": " + ex.Message; }
+                }
             }
-            catch (Exception ex)
+        }
+
+        // Call only while holding _lifecycle. Never dispose while holding _sync:
+        // WASAPI disposal waits for callbacks that also take _sync.
+        private void ReleaseSession()
+        {
+            ILoopbackSession cap;
+            lock (_sync)
             {
-                lock (_sync) { _ok = false; _err = ex.GetType().Name + ": " + ex.Message; }
-                if (!_disposed) { try { _retry.Change(2500, Timeout.Infinite); } catch (ObjectDisposedException) { } }
+                cap = _cap;
+                _cap = null;
+                _ok = false;
+                _pending.Clear();
+                Array.Clear(_bands);
+                _rms = _peak = _lastTs = 0;
             }
+            try { cap?.Dispose(); } catch { }
         }
 
         private void BuildBandMap(int rate)
@@ -97,11 +171,10 @@ namespace HudWall
             if (_disposed) return;
             try
             {
-                var fmt = _cap?.WaveFormat;
-                if (fmt == null) return;
-
                 lock (_sync)
                 {
+                    if (_disposed || !ReferenceEquals(sender, _cap)) return;
+                    var fmt = _cap.WaveFormat;
                     if (fmt.Encoding == WaveFormatEncoding.IeeeFloat && fmt.BitsPerSample == 32)
                     {
                         int n = e.BytesRecorded / 4;
@@ -234,9 +307,13 @@ namespace HudWall
 
         public void Dispose()
         {
-            _disposed = true;
-            _retry?.Dispose();
-            try { _cap?.StopRecording(); _cap?.Dispose(); } catch { }
+            lock (_lifecycle)
+            {
+                if (_disposed) return;
+                _disposed = true;
+                _retry.Dispose();
+                ReleaseSession();
+            }
         }
     }
 }

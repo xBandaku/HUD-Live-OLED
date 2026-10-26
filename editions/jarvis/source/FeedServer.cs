@@ -19,15 +19,17 @@ namespace HudWall
     {
         private readonly StatsCollector _stats;
         private readonly AudioCapture _audio;
-        private readonly TcpListener _listener;
+        private TcpListener _listener;
         private readonly CancellationTokenSource _cts = new();
         private int _port;
 
-        public FeedServer(int port)
+        public FeedServer(int port) : this(port, new StatsCollector(), new AudioCapture()) { }
+
+        internal FeedServer(int port, StatsCollector stats, AudioCapture audio)
         {
             _port = port;
-            _stats = new StatsCollector();
-            _audio = new AudioCapture();
+            _stats = stats;
+            _audio = audio;
             _listener = new TcpListener(IPAddress.Loopback, port);
         }
 
@@ -48,6 +50,7 @@ namespace HudWall
                     {
                         var l = new TcpListener(IPAddress.Loopback, p);
                         l.Start(64);
+                        _listener = l;
                         _port = p;
                         StartAcceptLoop(l);
                         Program.Log("feed listening on " + _port + " (fallback)");

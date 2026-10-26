@@ -120,21 +120,30 @@ if ($hwnd -ne [IntPtr]::Zero) {
     }
 }
 if (!$attached) {
-    Write-LauncherLog "Attachment failed: host=$hwnd; worker=$([WallpaperDesktop]::Worker()); parent=$([WallpaperDesktop]::GetParent($hwnd)); win32=$([Runtime.InteropServices.Marshal]::GetLastWin32Error())"
-    Add-Type -AssemblyName System.Windows.Forms
-    [Windows.Forms.MessageBox]::Show("HUD Live could not attach to Explorer's wallpaper layer.`r`nThe HUD remains in preview mode.`r`n`r`nDetails: $logPath", 'HUD Live') | Out-Null
-    return
+    Write-LauncherLog "Attachment pending: host=$hwnd; retrying until Explorer is ready or HUD Live exits"
+} else {
+    Write-LauncherLog "Attached to desktop parent=$([WallpaperDesktop]::GetParent($hwnd))"
 }
-Write-LauncherLog "Attached to desktop parent=$([WallpaperDesktop]::GetParent($hwnd))"
 Register-AutomaticStartup
-while (!$process.HasExited) {
-    Start-Sleep -Seconds 3
-    $process.Refresh()
-    if ($process.HasExited) { break }
-    $next = [Windows.Forms.SystemInformation]::VirtualScreen
-    if (![WallpaperDesktop]::IsWindow([WallpaperDesktop]::GetParent($hwnd)) -or $next -ne $bounds -or ![WallpaperDesktop]::Covers($hwnd,$next.X,$next.Y,$next.Width,$next.Height)) {
-        $bounds=$next
-        [WallpaperDesktop]::Attach($hwnd,$bounds.X,$bounds.Y,$bounds.Width,$bounds.Height) | Out-Null
+
+function Watch-WallpaperHost($HostProcess, [IntPtr]$HostWindow, $DesktopBounds, [bool]$InitiallyAttached) {
+    $isAttached = $InitiallyAttached
+    while (!$HostProcess.HasExited) {
+        Start-Sleep -Seconds 3
+        $HostProcess.Refresh()
+        if ($HostProcess.HasExited) { break }
+        if (![WallpaperDesktop]::IsWindow($HostWindow)) {
+            $HostWindow = [WallpaperDesktop]::FindHost($HostProcess.Id)
+            $isAttached = $false
+        }
+        if ($HostWindow -eq [IntPtr]::Zero) { continue }
+        $next = [Windows.Forms.SystemInformation]::VirtualScreen
+        if (!$isAttached -or ![WallpaperDesktop]::IsWindow([WallpaperDesktop]::GetParent($HostWindow)) -or $next -ne $DesktopBounds -or ![WallpaperDesktop]::Covers($HostWindow,$next.X,$next.Y,$next.Width,$next.Height)) {
+            $DesktopBounds = $next
+            $isAttached = [WallpaperDesktop]::Attach($HostWindow,$DesktopBounds.X,$DesktopBounds.Y,$DesktopBounds.Width,$DesktopBounds.Height)
+            if ($isAttached) { Write-LauncherLog "Desktop attachment recovered for host=$HostWindow" }
+        }
     }
 }
+Watch-WallpaperHost $process $hwnd $bounds $attached
 Write-LauncherLog "Host exited with code $($process.ExitCode)"

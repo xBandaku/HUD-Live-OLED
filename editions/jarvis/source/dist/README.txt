@@ -1,3 +1,18 @@
+NEW IN v41.0.1: AUDIO AND STARTUP RECOVERY
+Audio follows the default Windows multimedia playback device within about
+1.5 seconds. If Explorer is not ready when you start the wallpaper, the launcher
+keeps retrying every three seconds until HUD Live exits. Fallback feed ports
+are released immediately when the feed is disposed.
+
+UPDATING SAFELY
+Exit HUD Live using its tray menu before replacing files. Back up your existing
+assets folder and extract the new version into a separate folder. Copy your
+saved JSON settings and monitor-colors folder into the new assets folder,
+keeping the new index.html and other shipped web assets. Keep your old folder
+until the new version starts successfully. Organizer files and neural models
+remain outside the installation folder. Starting the new copy registers its
+location for automatic Windows startup.
+
 NEW IN v40: FULL-DESKTOP SIZE RECOVERY
 The wallpaper now repairs accidental preview sizing and follows physical desktop bounds.
 
@@ -5,7 +20,7 @@ NEW IN v39: GOD'S EYE VIEW INSIDE SHIELD
 Use tray > SHIELD / God's Eye for globe presets and the interactive console.
 See GODS EYE.txt for keyless setup, voice shortcuts and source credits.
 
-HUD LIVE - JARVIS LOCAL EDITION v41
+HUD LIVE - JARVIS LOCAL EDITION v41.0.1
 
 NEW IN v37: AVENGERS AUDIT AND MODERN TASKBAR
 The dock now uses borderless icon tiles and running-app indicators.

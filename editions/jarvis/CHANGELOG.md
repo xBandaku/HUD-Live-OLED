@@ -1,3 +1,10 @@
+## v41.0.1 - Audio and startup recovery (October 26, 2026)
+
+- Follow changes to the default audio output within approximately 1.5 seconds, reset retired capture samples, and retry stopped or unavailable audio devices.
+- Keep launcher attachment retries running when Explorer or the HUD window is not ready after startup; recover without leaving an orphaned preview host that requires a restart.
+- Close the active feed listener on disposal even when the requested port was occupied and a fallback port was selected.
+- Add JARVIS audio/feed and simulated launcher recovery tests to Windows CI, alongside a build of the JARVIS project.
+
 ## v41 - United States globe focus (October 26, 2026)
 
 - Add persistent United States / World focus controls under SHIELD / God's Eye > Focus. Center the U.S. view at 39 N, 98 W with a 6,500 km camera altitude, while World restores the 20,000 km global view.
