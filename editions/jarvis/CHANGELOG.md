@@ -1,3 +1,9 @@
+## v42 - GPU telemetry without console processes (October 26, 2026)
+
+- Read NVIDIA GPU name, VRAM, utilization and temperature directly through the installed NVML driver library. Remove startup and recurring nvidia-smi launches, eliminating that potential source of console flashes.
+- Sample GPU telemetry every two seconds, serialize native reads and shutdown, and leave unsupported measurements unavailable. GPU name retains the existing registry fallback if NVML is unavailable.
+- Preserve existing settings, organizer files, models, display roles and custom executable/window icons.
+
 ## v41.0.1 - Audio and startup recovery (October 26, 2026)
 
 - Follow changes to the default audio output within approximately 1.5 seconds, reset retired capture samples, and retry stopped or unavailable audio devices.
