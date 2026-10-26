@@ -1,3 +1,13 @@
+PERSISTENCE (next build)
+HUD taskbars follow the active Windows virtual desktop and recover after display,
+resume, and Explorer changes. Recovery checks run about once per second. Normal
+and maximized apps keep the taskbar available; fullscreen games/videos hide it
+only on the monitors they cover. The taskbar restores without taking focus.
+Temporary shell failures show native taskbars while recovery retries instead of
+disabling your saved preference. Actual desktop-switch/fullscreen behavior still
+needs manual validation on the installed build. Windows tray and recovery controls
+below remain available.
+
 v37: Rounded icon tiles replace the old outlined text buttons. Hover for control names; right-click app tiles for actions. The ellipsis near running apps lists all windows. The ellipsis in the system cluster shows the original Windows tray for 25 seconds.
 
 HUD TASKBAR - v36

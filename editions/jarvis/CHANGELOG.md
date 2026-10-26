@@ -1,3 +1,9 @@
+## Unreleased - Taskbar persistence
+
+- Recreate HUD taskbars on the active virtual desktop when Windows reports they belong to an inactive desktop, without changing the user's desktop or foreground app.
+- Restore non-activating topmost placement over normal apps and retain per-monitor fullscreen hiding. Ignore the wallpaper, shell, and captioned maximized windows when deciding whether to hide.
+- Retry transient Explorer/appbar registration failures and refresh after display changes or resume instead of permanently disabling replacement. Make native Windows taskbars available during update failures while preserving the recovery watchdog and enabled setting.
+
 ## v41.0.1 - Audio and startup recovery (October 26, 2026)
 
 - Follow changes to the default audio output within approximately 1.5 seconds, reset retired capture samples, and retry stopped or unavailable audio devices.

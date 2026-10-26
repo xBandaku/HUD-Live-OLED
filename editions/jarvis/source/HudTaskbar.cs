@@ -18,8 +18,10 @@ internal sealed class HudTaskbars:IDisposable {
  private readonly Action _restore;
  private readonly List<HudTaskbarWindow> _bars=new();
  private readonly Dictionary<IntPtr,Image> _icons=new();
+ private readonly TaskbarDesktopMembership _desktops=new();
  private readonly System.Windows.Forms.Timer _timer=new(){Interval=200};
- private DateTime _nextTasks;
+ private DateTime _nextTasks,_retryAfter;
+ private int _originalState;
  private string _topology;
  internal event Action LayoutChanged;
  internal static string DisplayKey(IEnumerable<(string id,Rectangle bounds,bool primary)> displays)=>string.Join("|",displays.OrderBy(s=>s.id,StringComparer.Ordinal).Select(s=>$"{s.id}:{s.bounds.X},{s.bounds.Y},{s.bounds.Width},{s.bounds.Height}:{s.primary}"));
@@ -34,7 +36,7 @@ internal sealed class HudTaskbars:IDisposable {
  internal HudTaskbars(string assets,Icon icon,Func<Screen,(string,Dictionary<string,string>)> theme,Action<Point> menu,Action restore){_assets=assets;_icon=icon;_theme=theme;_menu=menu;_restore=restore;Settings=HudTaskbarSettings.Load(assets);}
  internal void Start(){
   if(File.Exists(TaskbarRecovery.RequestPath))File.Delete(TaskbarRecovery.RequestPath);
-  TaskbarRecovery.Restore();int state=TaskbarNative.ShellState();TaskbarRecovery.Save(new(Environment.ProcessId,_token,state));
+  TaskbarRecovery.Restore();int state=TaskbarNative.ShellState();_originalState=state;TaskbarRecovery.Save(new(Environment.ProcessId,_token,state));
   _stop=new EventWaitHandle(false,EventResetMode.ManualReset,"Local\\HudWall.TaskbarStop."+_token);
   var watchdog=new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory,"HudWall.exe"),"--taskbar-watchdog "+Environment.ProcessId+" "+_token){UseShellExecute=false,CreateNoWindow=true,WindowStyle=ProcessWindowStyle.Hidden};
   using(var ready=new EventWaitHandle(false,EventResetMode.ManualReset,"Local\\HudWall.TaskbarReady."+_token)){Process.Start(watchdog)?.Dispose();if(!ready.WaitOne(3000))throw new InvalidOperationException("The taskbar recovery watchdog did not become ready.");}
@@ -49,16 +51,23 @@ internal sealed class HudTaskbars:IDisposable {
   }catch{Dispose();throw;}
  }
  private void Tick(){
-  if(_disposed)return;
+  if(_disposed||DateTime.UtcNow<_retryAfter)return;
   try{
    if(File.Exists(TaskbarRecovery.RequestPath)){File.Delete(TaskbarRecovery.RequestPath);Dispose();_restore();return;}
    if(_temporary>DateTime.UtcNow)return;
    if(_temporary!=default){_temporary=default;TaskbarNative.ShellState(TaskbarNative.ShellState()|1);foreach(var bar in _bars){bar.Show();bar.Reserve();}}
    var shell=TaskbarNative.FindWindow("Shell_TrayWnd",null);
-   if(shell!=_shell){_shell=shell;foreach(var bar in _bars)bar.RegisterAgain();}
+   // Explorer is temporarily absent during a restart. Keep the watchdog alive
+   // and retry registration once its primary taskbar exists again.
+   if(shell==IntPtr.Zero)return;
+   if(shell!=_shell||_bars.Any(b=>!b.IsDisposed&&b.NeedsRegistration)){
+    try{foreach(var bar in _bars)bar.RegisterAgain();TaskbarNative.ShellState(TaskbarNative.ShellState()|1);_shell=shell;}
+    catch(Exception ex){Program.Log("HUD taskbar waiting for Explorer registration: "+ex.GetType().Name);return;}
+   }
    foreach(var window in _nativeBars)if(TaskbarNative.IsWindowVisible(window))TaskbarNative.ShowWindow(window,0);
    if(DateTime.UtcNow>=_nextTasks){_nextTasks=DateTime.UtcNow.AddSeconds(1);var topology=CurrentTopology();
-    if(topology!=_topology){
+    bool desktopChanged=TaskbarVisibility.NeedsDesktopRebuild(_bars.Where(b=>!b.IsDisposed&&b.IsHandleCreated).Select(b=>_desktops.IsCurrent(b.Handle)));
+    if(topology!=_topology||desktopChanged||_bars.Any(b=>b.IsDisposed)){
      foreach(var bar in _bars){bar.Release();bar.Close();bar.Dispose();}_bars.Clear();
      foreach(var screen in Screen.AllScreens){var bar=new HudTaskbarWindow(this,screen,_icon);_bars.Add(bar);bar.Show();bar.Reserve();}
      _topology=topology;Program.Log("HUD taskbar display layout refreshed: "+topology);LayoutChanged?.Invoke();
@@ -68,11 +77,18 @@ internal sealed class HudTaskbars:IDisposable {
     foreach(var window in _nativeBars)if(TaskbarNative.IsWindowVisible(window))TaskbarNative.ShowWindow(window,0);
     var tasks=TaskbarNative.Windows();foreach(var bar in _bars){bar.EnsurePosition();bar.RefreshTasks(tasks);}foreach(var key in _icons.Keys.Where(k=>!tasks.Any(t=>t.Window==k)).ToArray()){_icons[key].Dispose();_icons.Remove(key);}}
    foreach(var window in _nativeBars)if(TaskbarNative.IsWindowVisible(window))TaskbarNative.ShowWindow(window,0);
-  }catch(Exception ex){Program.Log("HUD taskbar update: "+ex.GetType().Name);Dispose();_restore();}
+  }catch(Exception ex){
+   Program.Log("HUD taskbar update deferred; Windows taskbar available during retry: "+ex.GetType().Name);
+   _retryAfter=DateTime.UtcNow.AddSeconds(2);_shell=IntPtr.Zero;RequestRefresh();
+   // Preserve the enabled preference and crash watchdog. Give the user a working
+   // native taskbar while transient shell/display operations are retried.
+   try{foreach(var bar in _bars)if(!bar.IsDisposed){bar.Release();bar.Hide();}TaskbarNative.ShellState(_originalState);foreach(var window in TaskbarNative.ShellBars())TaskbarNative.ShowWindow(window,5);}catch{}
+  }
  }
  internal (string style,Dictionary<string,string> colors) Theme(Screen screen)=>_theme(screen);
  internal void Refresh(){Settings=HudTaskbarSettings.Load(_assets);foreach(var bar in _bars)bar.Rebuild();Tick();}
  internal void HudMenu(Point point)=>_menu(point);
+ internal void RequestRefresh(){_nextTasks=default;_topology=null;}
  internal void RestoreWindows()=>_restore();
  internal void Resume(){if(_temporary!=default){_temporary=DateTime.UtcNow.AddMilliseconds(-1);Tick();}}
  internal void WindowsTray(){
@@ -88,7 +104,7 @@ internal sealed class HudTaskbars:IDisposable {
   return _icons[window]=SystemIcons.Application.ToBitmap();
  }
  internal static string Exe(uint pid){try{using var p=Process.GetProcessById((int)pid);return p.MainModule?.FileName;}catch{return null;}}
- public void Dispose(){if(_disposed)return;_disposed=true;_timer.Stop();_timer.Dispose();foreach(var bar in _bars){bar.Release();bar.Close();bar.Dispose();}_bars.Clear();TaskbarRecovery.Restore(_token);_stop?.Set();_stop?.Dispose();foreach(var image in _icons.Values)image.Dispose();_icons.Clear();}
+ public void Dispose(){if(_disposed)return;_disposed=true;_timer.Stop();_timer.Dispose();foreach(var bar in _bars){bar.Release();bar.Close();bar.Dispose();}_bars.Clear();_desktops.Dispose();TaskbarRecovery.Restore(_token);_stop?.Set();_stop?.Dispose();foreach(var image in _icons.Values)image.Dispose();_icons.Clear();}
 }
 internal sealed class HudTaskbarWindow:Form {
  private readonly HudTaskbars _owner;
@@ -103,6 +119,7 @@ internal sealed class HudTaskbarWindow:Form {
  private readonly uint _created=TaskbarNative.RegisterWindowMessage("TaskbarCreated");
  private const uint Callback=0x8000+441;
  internal string DeviceName=>_screen.DeviceName;
+ internal bool NeedsRegistration=>!_registered;
  internal HudTaskbarWindow(HudTaskbars owner,Screen screen,Icon icon){
   _owner=owner;_screen=screen;Icon=(Icon)icon.Clone();Text="HudWall taskbar / "+screen.DeviceName;FormBorderStyle=FormBorderStyle.None;ShowInTaskbar=false;TopMost=true;StartPosition=FormStartPosition.Manual;AutoScaleMode=AutoScaleMode.None;DoubleBuffered=true;
   Bounds=new Rectangle(screen.Bounds.Left,screen.Bounds.Bottom-62,screen.Bounds.Width,62);Controls.Add(_tasks);Controls.Add(_right);Controls.Add(_left);Rebuild();
@@ -131,12 +148,20 @@ internal sealed class HudTaskbarWindow:Form {
  }
  internal void Reserve(){if(!_registered){var data=TaskbarNative.Data(Handle);data.Callback=Callback;_registered=TaskbarNative.SHAppBarMessage(0,ref data)!=UIntPtr.Zero;if(!_registered)throw new InvalidOperationException("Windows rejected HUD taskbar registration.");}PositionBar();}
  internal void EnsurePosition(){PositionBar();}
- internal void RegisterAgain(){_registered=false;_reserved=false;Reserve();}
+ internal void RegisterAgain(){Release();Reserve();}
  internal void Release(){if(_registered){var data=TaskbarNative.Data(Handle);TaskbarNative.SHAppBarMessage(1,ref data);_registered=false;_reserved=false;}}
  private void PositionBar(){if(_positioning||!_registered)return;_positioning=true;try{int height=Math.Max(54,(int)Math.Round(62*DeviceDpi/96d));var data=TaskbarNative.Data(Handle);data.Edge=3;var b=_screen.Bounds;data.Bounds=new(){Left=b.Left,Top=b.Bottom-height,Right=b.Right,Bottom=b.Bottom};TaskbarNative.SHAppBarMessage(2,ref data);data.Bounds.Top=data.Bounds.Bottom-height;var target=Rectangle.FromLTRB(data.Bounds.Left,data.Bounds.Top,data.Bounds.Right,data.Bounds.Bottom);if(_reserved&&Bounds==target)return;TaskbarNative.SHAppBarMessage(3,ref data);Bounds=Rectangle.FromLTRB(data.Bounds.Left,data.Bounds.Top,data.Bounds.Right,data.Bounds.Bottom);_reserved=true;}finally{_positioning=false;}}
  internal void RefreshTasks(List<TaskWindow> windows){
-  var foreground=TaskbarNative.GetForegroundWindow();bool full=false;if(foreground!=IntPtr.Zero&&TaskbarNative.Class(foreground) is not "Progman" and not "WorkerW"&&TaskbarNative.GetWindowRect(foreground,out var rect)){var b=_screen.Bounds;full=rect.Left<=b.Left+1&&rect.Top<=b.Top+1&&rect.Right>=b.Right-1&&rect.Bottom>=b.Bottom-1;}
+  var foreground=TaskbarNative.GetForegroundWindow();bool full=false;
+  if(foreground!=IntPtr.Zero&&TaskbarNative.GetWindowRect(foreground,out var rect)){
+   TaskbarNative.GetWindowThreadProcessId(foreground,out uint pid);
+   bool caption=(TaskbarNative.GetWindowLong(foreground,-16).ToInt64()&0x00C00000)==0x00C00000;
+   full=TaskbarVisibility.IsFullscreen(_screen.Bounds,Rectangle.FromLTRB(rect.Left,rect.Top,rect.Right,rect.Bottom),pid==Environment.ProcessId,TaskbarNative.Class(foreground),TaskbarNative.IsZoomed(foreground)&&caption);
+  }
   if(full){Hide();return;}if(WindowState==FormWindowState.Minimized)WindowState=FormWindowState.Normal;if(!Visible)Show();
+  // Show Desktop, Explorer and other topmost windows can lower an appbar.
+  // Restore its z-order without activating it or changing the foreground app.
+  TaskbarNative.SetWindowPos(Handle,new IntPtr(-1),0,0,0,0,0x0013);
   _clock.Text=_screen.Primary?DateTime.Now.ToString(ClockSettings.Load(Path.Combine(AppContext.BaseDirectory,"assets"))=="24"?"HH:mm\nMMM d, ddd":"h:mm tt\nMMM d, ddd"):"Calendar";
   var local=windows.Where(w=>Screen.FromHandle(w.Window).DeviceName==_screen.DeviceName).ToArray();int capacity=Math.Max(0,(_tasks.ClientSize.Width-60)/54);
   string signature=string.Join("|",local.Select(w=>w.Window+":"+w.Title))+":"+capacity;
@@ -148,7 +173,7 @@ internal sealed class HudTaskbarWindow:Form {
  }
  protected override void OnSizeChanged(EventArgs e){base.OnSizeChanged(e);if(_owner!=null&&IsHandleCreated)Rebuild();}
  protected override void OnPaint(PaintEventArgs e){base.OnPaint(e);using var pen=new Pen(Color.FromArgb(65,_accent),1);e.Graphics.DrawLine(pen,20,0,Width-20,0);}
- protected override void WndProc(ref Message m){if(m.Msg==0x21){m.Result=new IntPtr(3);return;}if((uint)m.Msg==Callback&&m.WParam.ToInt32()==1&&!_pending){_pending=true;BeginInvoke(()=>{_pending=false;PositionBar();});}if((uint)m.Msg==_created)RegisterAgain();base.WndProc(ref m);}
+ protected override void WndProc(ref Message m){if(m.Msg==0x21){m.Result=new IntPtr(3);return;}if((uint)m.Msg==Callback&&m.WParam.ToInt32()==1&&!_pending){_pending=true;BeginInvoke(()=>{_pending=false;PositionBar();});}if((uint)m.Msg==_created){try{if(TaskbarNative.FindWindow("Shell_TrayWnd",null)!=IntPtr.Zero)RegisterAgain();}catch(Exception ex){Program.Log("HUD taskbar shell registration deferred: "+ex.GetType().Name);}}base.WndProc(ref m);}
  protected override void Dispose(bool disposing){if(disposing){Release();_tips.Dispose();foreach(var image in _pinImages)image.Dispose();}base.Dispose(disposing);}
 }
 

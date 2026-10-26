@@ -11,6 +11,7 @@
     <!-- Compile the actual JARVIS recovery code without starting voice, AI or desktop services. -->
     <Compile Include="../source/Audio.cs" Link="Audio.cs" />
     <Compile Include="../source/FeedServer.cs" Link="FeedServer.cs" />
+    <Compile Include="../source/TaskbarPersistence.cs" Link="TaskbarPersistence.cs" />
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 </Project>

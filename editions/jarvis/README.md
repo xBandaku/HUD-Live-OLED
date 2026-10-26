@@ -36,6 +36,14 @@ Start `artifacts/HUDWall/Start Wallpaper.cmd`. The launcher registers Windows st
 
 If Explorer is not ready at startup, the launcher continues retrying desktop attachment every three seconds until the host exits. Audio capture follows changes to the default multimedia playback device within approximately 1.5 seconds.
 
+## HUD taskbar persistence (next build)
+
+Enable **Tray → HUD taskbar → Replace Windows taskbar**. Each monitor keeps its own JARVIS/SHIELD styling. The bars recover after desktop switches, display changes, resume, or Explorer changes without activating themselves. They remain above ordinary apps, including maximized windows, and hide on monitors covered by a fullscreen game or video. Returning from fullscreen shows them again.
+
+Virtual-desktop recovery checks Windows' supported desktop-membership API approximately once a second and recreates bars on the active desktop when needed. It does not switch your desktop or move application windows. If the API is temporarily unavailable, desktop following retries without disabling the taskbar. Live virtual-desktop switching, Explorer restart, and fullscreen transitions still require manual validation on the installed build.
+
+The Windows tray button still returns to native taskbars for 25 seconds. **Ctrl+Alt+Shift+T** remains the recovery shortcut to restore Windows taskbars and disable HUD replacement. During transient update failures, native taskbars become available while HUD recovery retries.
+
 ## Recovery tests
 
 From the repository root, run:

@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text.Json;
 using HudWall;
 using NAudio.Wave;
+using System.Drawing;
 
 int failures = 0;
 void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
@@ -72,6 +73,27 @@ Test("Feed disposal immediately releases its fallback port", () => {
     server.Dispose();
     using var replacement = new TcpListener(IPAddress.Loopback, fallback);
     replacement.Start();
+});
+Test("Taskbars hide for fullscreen only on covered monitors", () => {
+    var left = new Rectangle(-1920, 0, 1920, 1080);
+    var right = new Rectangle(0, 0, 2560, 1440);
+    Check(TaskbarVisibility.IsFullscreen(left, left, false, "Game", false), "Fullscreen game did not hide its taskbar");
+    Check(!TaskbarVisibility.IsFullscreen(right, left, false, "Game", false), "Game hid another monitor's taskbar");
+    Check(!TaskbarVisibility.IsFullscreen(right, new Rectangle(0, 0, 2560, 1378), false, "Browser", true), "Normal maximized app hid taskbar");
+    Check(!TaskbarVisibility.IsFullscreen(right, right, false, "Browser", true), "Captioned maximized app was mistaken for fullscreen");
+    Check(TaskbarVisibility.IsFullscreen(right, right, false, "Browser", false), "Fullscreen video did not hide taskbar");
+});
+Test("Wallpaper and shell windows never hide HUD taskbars", () => {
+    var monitor = new Rectangle(0, 0, 1920, 1080);
+    Check(!TaskbarVisibility.IsFullscreen(monitor, monitor, true, "WindowsForms10.Window", false), "HUD wallpaper hid its own taskbar");
+    foreach (var name in new[] { "Progman", "WorkerW", "Shell_TrayWnd", "Shell_SecondaryTrayWnd" })
+        Check(!TaskbarVisibility.IsFullscreen(monitor, monitor, false, name, false), "Shell window hid the taskbar: " + name);
+});
+Test("Desktop membership changes trigger recovery without reacting to unavailable APIs", () => {
+    Check(!TaskbarVisibility.NeedsDesktopRebuild(new bool?[] { true, true }), "Stable desktop rebuilt taskbars");
+    Check(TaskbarVisibility.NeedsDesktopRebuild(new bool?[] { true, false }), "Taskbar left on another desktop was ignored");
+    Check(!TaskbarVisibility.NeedsDesktopRebuild(new bool?[] { null, true }), "Temporary API failure destroyed taskbars");
+    Check(!TaskbarVisibility.NeedsDesktopRebuild(Array.Empty<bool?>()), "Empty set triggered endless desktop recovery");
 });
 Console.WriteLine(failures == 0 ? "All JARVIS recovery tests passed" : $"{failures} tests failed");
 return failures == 0 ? 0 : 1;

@@ -13,6 +13,8 @@ internal static class TaskbarNative {
  [DllImport("user32.dll")]internal static extern bool IsWindowVisible(IntPtr window);
  [DllImport("user32.dll")]internal static extern bool IsWindow(IntPtr window);
  [DllImport("user32.dll")]internal static extern bool IsIconic(IntPtr window);
+ [DllImport("user32.dll")]internal static extern bool IsZoomed(IntPtr window);
+ [DllImport("user32.dll")]internal static extern bool SetWindowPos(IntPtr window,IntPtr after,int x,int y,int width,int height,uint flags);
  [DllImport("user32.dll")]internal static extern bool ShowWindow(IntPtr window,int command);
  [DllImport("user32.dll")]internal static extern bool SetForegroundWindow(IntPtr window);
  [DllImport("user32.dll")]internal static extern bool AttachThreadInput(uint a,uint b,bool attach);
