@@ -15,6 +15,19 @@ Copy-Item .\gods-eye .\artifacts\HUDWall\gods-eye -Recurse -Force
 
 Start `artifacts/HUDWall/Start Wallpaper.cmd`. The launcher registers Windows startup. Use the tray menu for themes, monitor roles, voice and the optional taskbar. Restore the Windows taskbar with **Ctrl+Alt+Shift+T**.
 
+If Explorer is not ready at startup, the launcher continues retrying desktop attachment every three seconds until the host exits. Audio capture follows changes to the default multimedia playback device within approximately 1.5 seconds.
+
+## Recovery tests
+
+From the repository root, run:
+
+```powershell
+dotnet run --project editions/jarvis/tests/Recovery.Tests.csproj -c Release
+./editions/jarvis/tests/Launcher.Tests.ps1
+```
+
+The tests compile the JARVIS audio/feed sources, simulate audio sessions and native attachment calls, and verify real loopback socket cleanup without changing your audio devices or desktop windows. Windows CI also builds the full JARVIS project. Live device switching and Explorer recovery still need manual validation.
+
 The repository has clean defaults instead of personal monitor settings, app pins, weather location, API keys or models. Neural models live outside the repository under `%LocalAppData%\HudWall\Models`. The optional local intro video is omitted and movie intro is disabled by default.
 
 ## God's Eye
