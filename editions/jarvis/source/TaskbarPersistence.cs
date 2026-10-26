@@ -3,8 +3,37 @@ using System.Runtime.InteropServices;
 
 namespace HudWall;
 
+internal sealed record TaskbarWindowState(Rectangle Bounds, bool OwnProcess, string WindowClass,
+    bool MaximizedWithCaption, bool Minimized = false);
+
+internal static class TaskbarLayout
+{
+    internal static int HeightForDpi(int dpi) => Math.Max(54, (int)Math.Round(62 * dpi / 96d));
+
+    internal static Rectangle BottomBounds(Rectangle monitor, int height) =>
+        new(monitor.Left, monitor.Bottom - height, monitor.Width, height);
+}
+
 internal static class TaskbarVisibility
 {
+    // GetWindowRect includes invisible resize borders, which can spill a
+    // maximized app a few pixels onto the adjacent monitor.
+    internal static Rectangle VisibleBounds(Rectangle bounds, Rectangle monitor, bool maximizedWithCaption) =>
+        maximizedWithCaption ? Rectangle.Intersect(bounds, monitor) : bounds;
+
+    internal static bool HasFullscreenOnMonitor(Rectangle monitor, IEnumerable<TaskbarWindowState> windows)
+    {
+        // Native snapshots are ordered from top to bottom. A normal app covering
+        // a fullscreen window on this monitor takes precedence; focus elsewhere does not.
+        foreach (var window in windows)
+        {
+            if (window.Minimized || window.OwnProcess || window.WindowClass is "Progman" or "WorkerW" or "Shell_TrayWnd" or "Shell_SecondaryTrayWnd") continue;
+            if (!monitor.IntersectsWith(window.Bounds)) continue;
+            return IsFullscreen(monitor, window.Bounds, false, window.WindowClass, window.MaximizedWithCaption);
+        }
+        return false;
+    }
+
     internal static bool IsFullscreen(Rectangle monitor, Rectangle window, bool ownProcess,
         string windowClass, bool maximizedWithCaption)
     {

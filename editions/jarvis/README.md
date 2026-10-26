@@ -44,6 +44,10 @@ Virtual-desktop recovery checks Windows' supported desktop-membership API approx
 
 The Windows tray button still returns to native taskbars for 25 seconds. **Ctrl+Alt+Shift+T** remains the recovery shortcut to restore Windows taskbars and disable HUD replacement. During transient update failures, native taskbars become available while HUD recovery retries.
 
+The visible bar is anchored to the physical bottom edge, including mixed-DPI and negative-origin monitors, even while Windows still reports its old taskbar reservation. Fullscreen video on another monitor stays protected when you focus an app elsewhere; a normal app covering that video on the same monitor brings the taskbar back. An intentionally empty pin list now survives restart/re-enable. Existing saved pin arrays are preserved; only fresh settings import Windows pins or fallback shortcuts.
+
+Edited audio settings with invalid JSON types no longer stop startup: the loader tries a valid backup and otherwise uses 100% sensitivity. Supported numeric values remain clamped to 0–300%.
+
 ## Recovery tests
 
 From the repository root, run:

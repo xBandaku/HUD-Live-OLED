@@ -1,4 +1,7 @@
 PERSISTENCE (next build)
+The visible bar stays flush with the physical bottom edge instead of floating
+above Windows' old reserved taskbar space. Empty pin lists stay empty after a
+restart. Fullscreen video stays protected when focus moves to another monitor.
 HUD taskbars follow the active Windows virtual desktop and recover after display,
 resume, and Explorer changes. Recovery checks run about once per second. Normal
 and maximized apps keep the taskbar available; fullscreen games/videos hide it

@@ -4,12 +4,6 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows.Forms;
 namespace HudWall;
-internal sealed class HudTaskbarSettings {
- public bool Enabled {get;set;}=false;
- public List<string> Pins {get;set;}=new();
- internal static HudTaskbarSettings Load(string assets){try{var s=JsonSerializer.Deserialize<HudTaskbarSettings>(SettingsStorage.Read(Path.Combine(assets,"taskbar.json")))??new();s.Pins??=new();return s;}catch{return new();}}
- internal void Save(string assets)=>SettingsStorage.Write(Path.Combine(assets,"taskbar.json"),JsonSerializer.Serialize(this));
-}
 internal sealed class HudTaskbars:IDisposable {
  private readonly string _assets,_token=Guid.NewGuid().ToString("N");
  private readonly Icon _icon;
@@ -40,7 +34,10 @@ internal sealed class HudTaskbars:IDisposable {
   _stop=new EventWaitHandle(false,EventResetMode.ManualReset,"Local\\HudWall.TaskbarStop."+_token);
   var watchdog=new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory,"HudWall.exe"),"--taskbar-watchdog "+Environment.ProcessId+" "+_token){UseShellExecute=false,CreateNoWindow=true,WindowStyle=ProcessWindowStyle.Hidden};
   using(var ready=new EventWaitHandle(false,EventResetMode.ManualReset,"Local\\HudWall.TaskbarReady."+_token)){Process.Start(watchdog)?.Dispose();if(!ready.WaitOne(3000))throw new InvalidOperationException("The taskbar recovery watchdog did not become ready.");}
-  if(Settings.Pins.Count==0){string pinned=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"Microsoft","Internet Explorer","Quick Launch","User Pinned","TaskBar");if(Directory.Exists(pinned))Settings.Pins=Directory.GetFiles(pinned,"*.lnk").Take(12).ToList();if(Settings.Pins.Count==0)Settings.Pins=new(){Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),"explorer.exe"),Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"notepad.exe")};Settings.Save(_assets);}
+  if(Settings.InitializePins(()=>{
+   string pinned=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"Microsoft","Internet Explorer","Quick Launch","User Pinned","TaskBar");
+   return Directory.Exists(pinned)?Directory.GetFiles(pinned,"*.lnk").Take(12):Array.Empty<string>();
+  },()=>new[]{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),"explorer.exe"),Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"notepad.exe")}))Settings.Save(_assets);
   try{
    TaskbarNative.ShellState(state|1);
    foreach(var screen in Screen.AllScreens){var bar=new HudTaskbarWindow(this,screen,_icon);_bars.Add(bar);bar.Show();bar.Reserve();}
@@ -75,7 +72,7 @@ internal sealed class HudTaskbars:IDisposable {
     // Explorer can add a secondary taskbar without replacing its primary window.
     _nativeBars=TaskbarNative.ShellBars();
     foreach(var window in _nativeBars)if(TaskbarNative.IsWindowVisible(window))TaskbarNative.ShowWindow(window,0);
-    var tasks=TaskbarNative.Windows();foreach(var bar in _bars){bar.EnsurePosition();bar.RefreshTasks(tasks);}foreach(var key in _icons.Keys.Where(k=>!tasks.Any(t=>t.Window==k)).ToArray()){_icons[key].Dispose();_icons.Remove(key);}}
+    var tasks=TaskbarNative.Windows();var visibility=TaskbarNative.VisibilityWindows();foreach(var bar in _bars){bar.EnsurePosition();bar.RefreshTasks(tasks,visibility);}foreach(var key in _icons.Keys.Where(k=>!tasks.Any(t=>t.Window==k)).ToArray()){_icons[key].Dispose();_icons.Remove(key);}}
    foreach(var window in _nativeBars)if(TaskbarNative.IsWindowVisible(window))TaskbarNative.ShowWindow(window,0);
   }catch(Exception ex){
    Program.Log("HUD taskbar update deferred; Windows taskbar available during retry: "+ex.GetType().Name);
@@ -96,7 +93,7 @@ internal sealed class HudTaskbars:IDisposable {
   if(File.Exists(TaskbarRecovery.StatePath)){var state=JsonSerializer.Deserialize<TaskbarRecoveryState>(File.ReadAllText(TaskbarRecovery.StatePath));if(state!=null)TaskbarNative.ShellState(state.OriginalState);}
   foreach(var window in TaskbarNative.ShellBars())TaskbarNative.ShowWindow(window,5);_temporary=DateTime.UtcNow.AddSeconds(25);
  }
- internal void Pin(string path,bool add){if(add&&!Settings.Pins.Contains(path,StringComparer.OrdinalIgnoreCase))Settings.Pins.Add(path);if(!add)Settings.Pins.RemoveAll(p=>p.Equals(path,StringComparison.OrdinalIgnoreCase));Settings.Save(_assets);foreach(var bar in _bars)bar.Rebuild();}
+ internal void Pin(string path,bool add){if(add&&!Settings.Pins.Contains(path,StringComparer.OrdinalIgnoreCase))Settings.Pins.Add(path);if(!add)Settings.Pins.RemoveAll(p=>p.Equals(path,StringComparison.OrdinalIgnoreCase));Settings.PinsInitialized=true;Settings.Save(_assets);foreach(var bar in _bars)bar.Rebuild();}
  internal Image WindowIcon(IntPtr window){
   if(_icons.TryGetValue(window,out var icon))return icon;
   TaskbarNative.SendMessageTimeout(window,0x7f,new IntPtr(2),IntPtr.Zero,2,25,out var handle);if(handle==IntPtr.Zero)TaskbarNative.SendMessageTimeout(window,0x7f,new IntPtr(1),IntPtr.Zero,2,25,out handle);if(handle==IntPtr.Zero)handle=TaskbarNative.GetClassLong(window,-14);
@@ -116,6 +113,7 @@ internal sealed class HudTaskbarWindow:Form {
  private string _signature="";
  private Color _accent,_text,_background;
  private bool _registered,_positioning,_pending,_reserved;
+ private Rectangle _reservation;
  private readonly uint _created=TaskbarNative.RegisterWindowMessage("TaskbarCreated");
  private const uint Callback=0x8000+441;
  internal string DeviceName=>_screen.DeviceName;
@@ -150,14 +148,32 @@ internal sealed class HudTaskbarWindow:Form {
  internal void EnsurePosition(){PositionBar();}
  internal void RegisterAgain(){Release();Reserve();}
  internal void Release(){if(_registered){var data=TaskbarNative.Data(Handle);TaskbarNative.SHAppBarMessage(1,ref data);_registered=false;_reserved=false;}}
- private void PositionBar(){if(_positioning||!_registered)return;_positioning=true;try{int height=Math.Max(54,(int)Math.Round(62*DeviceDpi/96d));var data=TaskbarNative.Data(Handle);data.Edge=3;var b=_screen.Bounds;data.Bounds=new(){Left=b.Left,Top=b.Bottom-height,Right=b.Right,Bottom=b.Bottom};TaskbarNative.SHAppBarMessage(2,ref data);data.Bounds.Top=data.Bounds.Bottom-height;var target=Rectangle.FromLTRB(data.Bounds.Left,data.Bounds.Top,data.Bounds.Right,data.Bounds.Bottom);if(_reserved&&Bounds==target)return;TaskbarNative.SHAppBarMessage(3,ref data);Bounds=Rectangle.FromLTRB(data.Bounds.Left,data.Bounds.Top,data.Bounds.Right,data.Bounds.Bottom);_reserved=true;}finally{_positioning=false;}}
- internal void RefreshTasks(List<TaskWindow> windows){
-  var foreground=TaskbarNative.GetForegroundWindow();bool full=false;
-  if(foreground!=IntPtr.Zero&&TaskbarNative.GetWindowRect(foreground,out var rect)){
-   TaskbarNative.GetWindowThreadProcessId(foreground,out uint pid);
-   bool caption=(TaskbarNative.GetWindowLong(foreground,-16).ToInt64()&0x00C00000)==0x00C00000;
-   full=TaskbarVisibility.IsFullscreen(_screen.Bounds,Rectangle.FromLTRB(rect.Left,rect.Top,rect.Right,rect.Bottom),pid==Environment.ProcessId,TaskbarNative.Class(foreground),TaskbarNative.IsZoomed(foreground)&&caption);
-  }
+ private void PositionBar(){
+  if(_positioning||!_registered)return;_positioning=true;
+  try{
+   int height=TaskbarLayout.HeightForDpi(DeviceDpi);
+   var screen=Screen.AllScreens.FirstOrDefault(s=>s.DeviceName==DeviceName)??_screen;
+   var target=TaskbarLayout.BottomBounds(screen.Bounds,height);
+   var data=TaskbarNative.Data(Handle);data.Edge=3;
+   data.Bounds=new(){Left=target.Left,Top=target.Top,Right=target.Right,Bottom=target.Bottom};
+   TaskbarNative.SHAppBarMessage(2,ref data);
+   data.Bounds.Top=data.Bounds.Bottom-height;
+   var reservation=Rectangle.FromLTRB(data.Bounds.Left,data.Bounds.Top,data.Bounds.Right,data.Bounds.Bottom);
+   if(!_reserved||_reservation!=reservation){
+    TaskbarNative.SHAppBarMessage(3,ref data);
+    _reservation=Rectangle.FromLTRB(data.Bounds.Left,data.Bounds.Top,data.Bounds.Right,data.Bounds.Bottom);
+    _reserved=true;
+   }
+   // Explorer may negotiate space above its old hidden taskbar. Reserve the
+   // accepted work area, but anchor the visible replacement to the physical
+   // monitor edge rather than that stale shell rectangle.
+   if(Bounds!=target)Bounds=target;
+  }finally{_positioning=false;}
+ }
+ protected override void OnDpiChanged(DpiChangedEventArgs e){base.OnDpiChanged(e);PositionBar();}
+ internal void RefreshTasks(List<TaskWindow> windows,IReadOnlyList<TaskbarWindowState> visibility){
+  var foreground=TaskbarNative.GetForegroundWindow();
+  bool full=TaskbarVisibility.HasFullscreenOnMonitor(_screen.Bounds,visibility);
   if(full){Hide();return;}if(WindowState==FormWindowState.Minimized)WindowState=FormWindowState.Normal;if(!Visible)Show();
   // Show Desktop, Explorer and other topmost windows can lower an appbar.
   // Restore its z-order without activating it or changing the foreground app.

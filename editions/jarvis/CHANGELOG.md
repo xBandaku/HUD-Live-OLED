@@ -1,5 +1,9 @@
 ## Unreleased - Taskbar persistence
 
+- Keep the visible taskbar flush with the physical monitor bottom instead of placing it above a stale Windows taskbar reservation; repair placement at display and DPI changes.
+- Preserve fullscreen hiding on a monitor when focus moves elsewhere, while allowing a normal app placed above that video/game to show its taskbar.
+- Preserve intentionally empty taskbar pins across restart/re-enable, migrate existing saved arrays without reimporting them, and import defaults only for fresh settings.
+- Validate audio-setting JSON types and recover a valid backup or safe default instead of failing during startup on an edited or invalid setting.
 - Recreate HUD taskbars on the active virtual desktop when Windows reports they belong to an inactive desktop, without changing the user's desktop or foreground app.
 - Restore non-activating topmost placement over normal apps and retain per-monitor fullscreen hiding. Ignore the wallpaper, shell, and captioned maximized windows when deciding whether to hide.
 - Retry transient Explorer/appbar registration failures and refresh after display changes or resume instead of permanently disabling replacement. Make native Windows taskbars available during update failures while preserving the recovery watchdog and enabled setting.
