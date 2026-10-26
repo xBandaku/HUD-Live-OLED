@@ -1,0 +1,11 @@
+HUD Live v23
+
+One connected interface across two screens, without placing the clock behind the bezel.
+The reactor and voice console stay on the Windows primary monitor. Diagnostics and history stay on a companion monitor. Backgrounds still cover the combined desktop. The layout follows physical screen coordinates and adapts when displays change.
+
+Tray options:
+- Span HUD across all monitors: one connected HUD or separate HUDs.
+- Keep widgets clear of monitor bezels: enabled by default. Disable to restore the old centred spanning layout.
+- HUD appearance > Interface style > J.A.R.V.I.S. reactor or S.H.I.E.L.D. operations. Selection is saved.
+
+Both styles share local Whisper recognition, voice commands, AI conversations, transparency, performance controls and automatic Windows startup. The whole interface stays fixed while internal rings animate.

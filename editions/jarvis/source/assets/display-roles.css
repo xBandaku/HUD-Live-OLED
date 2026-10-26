@@ -1,0 +1,39 @@
+.unit .stage{bottom:var(--hud-taskbar-inset,0px);}
+.jarvis-emblem,.jarvis-brand-emblem,.jarvis-movie-intro,.role-clock-holder,.operations-content{display:none;}
+.unit[data-interface="JARVIS"] .jarvis-emblem{display:block;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:310px;height:310px;object-fit:contain;mix-blend-mode:screen;pointer-events:none;}
+.unit[data-interface="JARVIS"] .arc-triangle{display:none!important;}
+.unit[data-interface="JARVIS"] .jarvis-brand-emblem{display:block;width:42px;height:42px;object-fit:contain;mix-blend-mode:screen;}
+.unit[data-interface="JARVIS"] .mark{clip-path:none;background:transparent;border:0;width:42px;height:42px;box-shadow:none;}
+.unit[data-interface="JARVIS"] .role-clock-holder{display:block;border-bottom:1px solid rgba(var(--accent-rgb),.3);margin-bottom:20px;padding:8px 0 16px;}
+.unit[data-interface="JARVIS"] .role-clock-holder .clock{position:static!important;transform:none!important;width:auto!important;height:auto!important;background:none!important;border:0!important;border-radius:0!important;padding:0!important;}
+.unit[data-interface="JARVIS"] .role-clock-holder .clock .time{font-size:48px;}.unit[data-interface="JARVIS"] .role-clock-holder .clock .zone{font-size:9px;}
+.unit[data-movie-intro="true"] .jarvis-movie-intro{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:12;mix-blend-mode:screen;pointer-events:none;}
+.unit[data-movie-intro="true"] .jarvis-emblem{visibility:hidden;}
+html[data-split-roles="true"] .unit[data-interface="SHIELD"] .role-original,html[data-split-roles="true"] .unit[data-interface="SHIELD"] .clock,html[data-split-roles="true"] .unit[data-interface="SHIELD"] .meta-row,html[data-split-roles="true"] .unit[data-interface="SHIELD"] .history-strip,html[data-split-roles="true"] .unit[data-interface="SHIELD"] .audio,html[data-split-roles="true"] .unit[data-interface="SHIELD"] .status-strip,html[data-split-roles="true"] .unit[data-interface="SHIELD"] .chips{display:none!important;}
+html[data-split-roles="true"] .unit[data-interface="SHIELD"] .stage{grid-template-rows:auto minmax(0,1fr)!important;}
+html[data-split-roles="true"] .unit[data-interface="SHIELD"] .operations-content{display:block;grid-column:1/-1;min-width:0;width:100%;}
+.operations-content h2{font-size:12px!important;color:var(--accent-2)!important;}.ops-event{padding:10px 0;border-bottom:1px solid #739bb333;}.ops-event small,.ops-reading small{font:10px Consolas,monospace;color:#9bb4c6;letter-spacing:.08em;}.ops-event p{font:13px/1.4 'Segoe UI',sans-serif;color:#e5f1f6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere;}.ops-reading{padding:12px 0;border-bottom:1px solid #739bb333;display:flex;flex-direction:column;gap:7px;}.ops-reading strong{font:14px Consolas,monospace;color:#d5e9f5;}
+html[data-split-roles="true"] .unit[data-interface="JARVIS"] .deck-content{grid-template-columns:1fr;}
+html[data-split-roles="true"] .unit[data-interface="JARVIS"] .chip:has([data-k="chip-net"]),html[data-split-roles="true"] .unit[data-interface="JARVIS"] .engineering-rail.right{display:none;}
+html[data-split-roles="true"] .unit[data-interface="JARVIS"] .status-strip [data-k="network-detail"],html[data-split-roles="true"] .unit[data-interface="JARVIS"] .status-strip [data-k="volume-detail"]{display:none;}
+html[data-atlas-depth="true"] .unit[data-interface="SHIELD"] .geographic-map{transform:perspective(2200px) rotateX(7deg) rotateY(-3deg) scale(.94);transform-origin:center;}
+html[data-rich-map="true"] .unit[data-interface="SHIELD"] .geo-country{fill:var(--atlas-fill);stroke:#a7d0d6;stroke-width:.58;stroke-opacity:.67;}
+html[data-rich-map="true"] .unit[data-interface="SHIELD"] .geo-country[data-country="United States of America"]{fill:var(--atlas-fill);}
+.atlas-links{fill:none;stroke:#dfb576;stroke-width:.75;opacity:.28;stroke-dasharray:2 7;pointer-events:none;animation:atlas-dash calc(var(--map-scan-duration,12s)*2) linear infinite;}
+@keyframes atlas-dash{to{stroke-dashoffset:-180}}
+html[data-map-motion="Off"] .atlas-links,html[data-rich-map="false"] .atlas-links{animation:none!important;}
+@media(prefers-reduced-motion:reduce){.atlas-links{animation:none!important;}.jarvis-movie-intro{display:none!important;}}
+
+/* The hero emblem occupies its own core; readable live data stays in the side columns. */
+html[data-split-roles="true"] .unit[data-interface="JARVIS"] .engineering-rail{display:none!important;}
+.unit .meta-row{gap:24px;}.unit .meta-row .k{font-size:9px;white-space:nowrap;}
+html[data-split-roles="true"] .unit[data-interface="JARVIS"] [data-k="g-disk"],html[data-split-roles="true"] .unit[data-interface="JARVIS"] [data-k="g-disk-sub"]{display:none;}
+html[data-split-roles="true"] .unit[data-interface="SHIELD"] .clockmeta{display:none!important;}
+
+html[data-split-roles="true"] .unit[data-interface="JARVIS"] .gauge:has([data-k="g-disk"]){display:none;}
+
+/* A compact panel needs independent clock typography, without reactor kerning. */
+.unit[data-interface="JARVIS"] .role-clock-holder .clock .time{display:flex!important;justify-content:center;align-items:baseline;gap:4px;font:400 54px/1.15 'Segoe UI',sans-serif!important;font-variant-numeric:tabular-nums;letter-spacing:0!important;white-space:nowrap;}
+.unit[data-interface="JARVIS"] .role-clock-holder .clock .time .sep{margin:0 5px!important;opacity:.65;font-weight:300;}
+.unit[data-interface="JARVIS"] .role-clock-holder .clock .time .ss{font-size:20px!important;margin-left:12px!important;letter-spacing:0;font-weight:400;}
+.unit[data-interface="JARVIS"] .role-clock-holder .clock .zone{margin-top:13px!important;letter-spacing:.13em;}

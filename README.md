@@ -83,3 +83,10 @@ tag and attach the ZIP and checksum automatically. Update the project version in
 
 Repository review rules, CI, dependency maintenance, and sponsorship setup are
 documented in [GitHub project setup](docs/GITHUB_SETUP.md).
+
+
+## Optional JARVIS / SHIELD edition
+
+The independent [JARVIS / SHIELD edition](editions/jarvis/README.md) adds local neural voice and conversation, a desktop organizer, an optional native taskbar, and God's Eye View inside the SHIELD display. It keeps separate source and packaging under `editions/jarvis/`; the OLED application's source and release workflow are unchanged.
+
+See its [build instructions](editions/jarvis/README.md) and [complete changelog](editions/jarvis/CHANGELOG.md). The repository contains clean defaults, not personal app pins, locations, API keys or model files. God's Eye source/runtime are initialized from a pinned upstream revision rather than committed as generated bundles.

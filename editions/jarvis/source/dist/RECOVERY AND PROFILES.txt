@@ -1,0 +1,22 @@
+ORGANIZER RECOVERY - v34
+
+Organizer settings now use %USERPROFILE%\.HudWall\Organizer\config.json.
+This location is independent of the app-data virtualization of the program that
+launched HUD Live. DESKNEST_DATA_DIR still overrides it for testing.
+
+On first launch without a stable profile, HUD Live checks earlier DeskNest
+profiles in regular Roaming AppData and installed app containers. It imports the
+populated profile, keeps copies of the legacy configs beside the new config,
+and translates virtual paths to their actual stored locations when needed.
+An existing stable profile is never replaced by this automatic import.
+
+Recovered files stay in their original storage; recovery does not move or delete
+them. StoragePath on a recovered frame records its physical fence folder. New
+frames use the stable profile's Fences directory. Retain the old storage until
+you intentionally relocate its contents; it still holds your recovered files.
+
+Configuration writes are atomic and retain a last-valid .bak. Recovery retains
+frame titles, coordinates, pinned items, launcher tabs and sort preferences.
+
+The JARVIS command/ambient panel now occupies measured free space near the
+hardware panel and does not obscure the CPU load, frame, week and day strip.

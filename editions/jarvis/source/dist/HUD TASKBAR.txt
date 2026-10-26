@@ -1,0 +1,37 @@
+v37: Rounded icon tiles replace the old outlined text buttons. Hover for control names; right-click app tiles for actions. The ellipsis near running apps lists all windows. The ellipsis in the system cluster shows the original Windows tray for 25 seconds.
+
+HUD TASKBAR - v36
+
+The taskbar is a native desktop component, not part of the click-through wallpaper.
+Each monitor gets its own JARVIS/SHIELD style and theme. It registers as an appbar
+so maximized windows leave space for it. It hides for fullscreen apps. Explorer
+keeps running.
+
+START opens Windows Start. FIND opens Windows Search. VIEW opens Task View.
+App buttons activate, restore or minimize windows; right-click for normal close
+and pinning. APPS lists all running windows, including overflow and other screens.
+Pinned shortcuts are imported from Windows when available. Right-click to unpin.
+
+HUD opens the regular HudWall settings menu. SYS opens Windows quick settings
+(volume/network/Bluetooth). ALERT and the clock open notifications/calendar.
+DESK shows the desktop. These flyouts remain Windows components.
+
+TRAY temporarily restores the original Windows taskbars for 25 seconds so all
+existing notification-area icons remain accessible. They are not embedded into
+the HUD bar. Say Jarvis show HUD taskbar to return immediately, or wait.
+
+RECOVERY
+Ctrl+Alt+Shift+T restores Windows and disables replacement. You can also use
+HUD > HUD taskbar > Restore Windows taskbar, or say Jarvis restore Windows taskbar.
+Re-enable through the same menu or say Jarvis enable HUD taskbar.
+
+A separate watchdog must be ready before the original taskbars are hidden. If
+HudWall exits or crashes, Windows taskbars and their previous auto-hide state are
+restored. A recovery record lives in %USERPROFILE%\.HudWall\taskbar-recovery.json.
+Normal shutdown removes it; startup also recovers an interrupted prior session.
+
+Pins/enabled state are saved in assets\taskbar.json. The organizer's stable
+profile, fence contents and existing files are not moved or reset.
+
+If the HUD is unresponsive, run Restore Windows Taskbar.cmd from the app folder.
+It restores the native bars through a separate process and disables replacement.

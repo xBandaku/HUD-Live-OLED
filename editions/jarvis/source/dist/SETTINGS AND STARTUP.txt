@@ -1,0 +1,10 @@
+Settings and Windows startup ? v28
+
+Tray changes save immediately. There is no separate Save button.
+Windows sign-in starts HUD automatically through Start Wallpaper.cmd and loads the last saved options from this installation's assets folder.
+
+Saved: each monitor's interface/theme/custom colors/pause/transparency/OLED options; global pause; spanning and bezel layout; SHIELD map region; panel darkness and visibility; FPS, animation mode/speed and game/fullscreen rules; voice enablement/replies/speed/app aliases/weather city; AI provider and tool options; temperature and clock format; audio sensitivity.
+
+Settings use atomic writes and last-valid .bak backups. API keys remain in the existing encrypted Windows-user key store.
+
+Tests verified restoration in a fresh process and startup shortcut registration. The PC itself was not rebooted during this update.

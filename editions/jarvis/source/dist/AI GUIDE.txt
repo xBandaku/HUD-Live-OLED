@@ -1,0 +1,68 @@
+OPTIONAL OPENAI PROVIDER GUIDE (v18)
+
+JARVIS v19 defaults to local Ollama and does not require an API key.
+Read LOCAL AI GUIDE.txt first. The instructions below apply only if you choose
+OpenAI in Tray > AI conversation > AI provider settings.
+
+SETUP
+Create your own key at https://platform.openai.com/api-keys
+Right-click the JARVIS tray icon > AI conversation > OpenAI settings.
+Paste the key into the password field and Save. Select Test AI connection.
+The default model is gpt-5.4-mini; change it if your API project needs another.
+API requests and web search may incur charges. Your API account needs available
+credits or active billing. ChatGPT subscription usage does not fund API-key calls.
+Do not paste keys into chat or release files.
+
+The saved key is encrypted for your Windows account at:
+%LOCALAPPDATA%\HudWall\openai-key.dat
+It is outside the installation folder and excluded from release ZIPs.
+Each user configures their own key. This package contains no API key.
+
+TALK NATURALLY
+Say Jarvis, followed by your question. Follow-up listening stays active for
+90 seconds after a reply, without repeating Jarvis. Say stop conversation
+to return to wake-name listening, or stop listening to turn voice off.
+The voice menu still controls the microphone, spoken replies and Windows voice.
+Existing local app/time/date/wallpaper commands work without an API key.
+
+Open conversation in the AI tray menu provides typed chat, full replies,
+tool activity, clickable sources, Stop response, and New conversation.
+Enter sends; Shift+Enter adds a newline.
+Conversation history is held in memory only, with six recent exchanges and
+a size limit. New conversation clears context. Restart also clears it.
+
+DATA AND COST
+Speech recognition and synthesis use Windows locally. AI questions, recent
+conversation context, relevant tool results and requested text excerpts are
+sent to OpenAI. This app does not save microphone recordings or chat to disk.
+Requests use store:false; OpenAI's applicable data policies still apply.
+AI settings allow disabling AI, AI PC tools, or online web search separately.
+
+PC ACCESS
+Examples:
+Jarvis, find the invoice PDF in my downloads.
+Jarvis, open Steam.
+Jarvis, find my project notes and summarize the text file.
+Jarvis, search the web for the latest space news.
+
+Search finds filenames and folders on accessible fixed drives, prioritizing
+common user locations. Each search stops after 10 seconds, 250000 entries
+or 40 matches and reports when results are partial. Refine the filename to
+continue. Windows file permissions apply; the app does not run as administrator.
+Protected locations, directory links and obvious credential files are excluded.
+Installed apps are discovered through configured aliases, Start menu shortcuts
+and Windows App Paths. Requested files, folders, apps and websites can open.
+Text/code file reading returns at most the first 16000 characters.
+PDF and Office files can be found/opened; their contents are not extracted.
+Scripts, installers, arbitrary shell commands, destructive actions and admin
+operations are not AI tools in this release.
+Web answers include clickable source URLs in the conversation window.
+
+VERIFICATION
+Encrypted key roundtrips, natural speech grammars, real local search/read,
+simulated multi-step OpenAI tool exchanges, context/reset, cancellation and
+error handling were tested. A live API key is still required to verify your
+account's model access, billing and actual OpenAI replies.
+
+Official API setup: https://developers.openai.com/api/docs/quickstart
+See CHANGELOG.md for the complete release history.

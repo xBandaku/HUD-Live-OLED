@@ -1,0 +1,8 @@
+.gods-eye-frame{position:absolute;inset:28px 0 0;width:100%;height:calc(100% - 28px);border:0;background:#020b12;z-index:3;opacity:0;pointer-events:none;}
+.gods-eye-label{position:absolute;left:0;right:0;top:0;min-height:23px;background:#041422;color:#b3dae9;font:10px/1.4 Consolas,monospace;letter-spacing:.07em;padding:4px 6px;z-index:5;box-sizing:border-box;}
+.unit[data-gods-eye="ready"] .gods-eye-frame{opacity:1;}
+.unit[data-gods-eye="ready"] .geographic-map,.unit[data-gods-eye="ready"] .map-animation-label{visibility:hidden;}
+.unit[data-gods-eye="ready"] .tactical-heading{visibility:hidden;}
+.unit[data-gods-eye="loading"] .tactical-heading{visibility:hidden;}
+
+.unit[data-gods-eye="ready"] .geographic-map *{animation:none!important;}

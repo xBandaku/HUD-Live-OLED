@@ -1,0 +1,23 @@
+.geographic-map{display:block;align-self:stretch;width:100%;flex:1 1 0;min-width:0;min-height:0;background:radial-gradient(ellipse at center,#122b3b88,#020d19dd);border:1px solid #7194ac33;}
+.geo-country{fill:#25475bd1;stroke:#94b9cb;stroke-width:.52;stroke-linejoin:round;fill-rule:evenodd;vector-effect:non-scaling-stroke;}
+.geo-country[data-country="United States of America"]{fill:#315b6cd9;}
+.geo-equator{stroke:#e1bf7959;stroke-width:.7;stroke-dasharray:4 5;fill:none;}
+.geo-coordinate-labels{font:8px Consolas,monospace;fill:#789eb4;stroke:none;letter-spacing:.5px;}
+.geo-reference-cities text{font:9px Consolas,monospace;fill:#e1eaf2;stroke:none;letter-spacing:.6px;paint-order:stroke;stroke:#03111e;stroke-width:2.5;}
+.geo-city-halo{fill:none;stroke:#ffc27a;stroke-width:.8;vector-effect:non-scaling-stroke;}
+.geo-city-dot{fill:#ffe0a1;stroke:none;}
+.geo-leader{stroke:#ffc27a88;stroke-width:.6;fill:none;}
+.geo-legend{display:flex;justify-content:space-between;gap:16px;padding:9px 0 0;font:9px Consolas,monospace;letter-spacing:.12em;color:#88a4b9;}
+.unit[data-interface="SHIELD"] .tactical-heading b{color:#b8d7e8;}
+.unit[data-interface="SHIELD"] .shield-board{inset:114px 26px 96px;}
+
+.geo-sweep{pointer-events:none;animation:geo-scan var(--map-scan-duration,12s) linear infinite;}
+.geo-city-halo{animation:geo-beacon var(--map-pulse-duration,4s) ease-in-out infinite;}
+.geo-reference-cities g:nth-child(2) .geo-city-halo{animation-delay:-1s;}
+.geo-reference-cities g:nth-child(3) .geo-city-halo{animation-delay:-2s;}
+.geo-reference-cities g:nth-child(4) .geo-city-halo{animation-delay:-3s;}
+@keyframes geo-scan{from{transform:translateX(0)}to{transform:translateX(var(--scan-distance,1160px))}}
+@keyframes geo-beacon{0%,100%{stroke-opacity:.25;stroke-width:.8}50%{stroke-opacity:1;stroke-width:1.8}}
+html[data-map-motion="Off"] .geo-sweep,html[data-motion="Off"] .geo-sweep,html[data-motion="Reduced"] .geo-sweep{display:none;}
+html[data-map-motion="Off"] .geo-city-halo{animation:none!important;}
+@media(prefers-reduced-motion:reduce){.geo-sweep{display:none;}.geo-city-halo{animation:none!important;}}

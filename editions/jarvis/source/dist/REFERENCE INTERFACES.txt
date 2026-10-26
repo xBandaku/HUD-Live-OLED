@@ -1,0 +1,7 @@
+v35 controls: HUD appearance > Detailed JARVIS engineering view; Enhanced SHIELD map effects; Animate SHIELD map; Cinematic refresh interval.
+
+The default refresh interval is five minutes. It waits while speaking, thinking, paused, in Showcase or reduced/off motion. Refreshes replay visual boot effects without repeating the startup greeting. Off disables periodic replay.
+
+Enhanced SHIELD uses movie-inspired teal geography, amber illustrative archive markers, coordinate labels and reference-region effects. These are decorative annotations, not live surveillance or claims about canonical character locations. Geography remains based on the bundled Natural Earth data. The user-provided screenshots and Reddit link were visual references.
+
+JARVIS's new engineering view uses real PC telemetry. Theme colors still apply. Turning the engineering toggle off restores the simpler reactor view. The command card now measures its content and selects a free position; long replies remain a concise preview with the full response available through the existing conversation view.
