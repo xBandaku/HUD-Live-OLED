@@ -31,7 +31,7 @@ internal sealed partial class HudForm {
  private bool HandleTaskbarCommand(string command){if(command is "restore windows taskbar" or "show windows taskbar"){SetHudTaskbarEnabled(false);Reply("Windows taskbar restored.");return true;}if(command is "enable hud taskbar" or "show hud taskbar"){SetHudTaskbarEnabled(true);Reply("HUD taskbar enabled.");return true;}if(command is "show notification tray" or "open system tray"){_hudTaskbars?.WindowsTray();return true;}return false;}
  protected override void WndProc(ref Message m){
   if(m.Msg==0x312&&m.WParam.ToInt32()==TaskbarRecoveryHotkey){SetHudTaskbarEnabled(false);return;}
-  if(m.Msg==0x7e&&_taskbarInitialized&&_hudTaskbars!=null)BeginInvoke(()=>{_hudTaskbars?.Dispose();_hudTaskbars=null;if(HudTaskbarSettings.Load(MonitorAssets).Enabled)StartHudTaskbar();});
+  if(_taskbarInitialized&&(m.Msg==0x7e||(m.Msg==0x218&&m.WParam.ToInt32() is 7 or 18)))_hudTaskbars?.RequestRefresh();
   base.WndProc(ref m);
  }
 }
