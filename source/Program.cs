@@ -302,8 +302,8 @@ namespace HudWall
                 _watchTimer = new System.Windows.Forms.Timer { Interval = 8000 };
                 _watchTimer.Tick += (_, __) =>
                 {
-                    if (_preview || !_attached) return;
-                    if (GetParent(Handle) == IntPtr.Zero)
+                    if (_preview) return;
+                    if (!_attached || GetParent(Handle) == IntPtr.Zero)
                     {
                         Program.Log("lost desktop parent, re-attaching");
                         PinToDesktop(true);

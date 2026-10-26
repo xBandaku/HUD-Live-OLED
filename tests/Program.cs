@@ -2,6 +2,9 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using HudWall;
+using NAudio.Wave;
+using System.Net;
+using System.Net.Sockets;
 
 if (args.FirstOrDefault() == "--fixture") {
     if (args[1] == "hang") { File.WriteAllText(args[2], Environment.ProcessId.ToString()); Thread.Sleep(30000); }
@@ -24,6 +27,51 @@ string fixturePrefix = Path.GetFileNameWithoutExtension(fixtureExe).Equals("dotn
     ? "\"" + Assembly.GetExecutingAssembly().Location + "\" " : "";
 
 try {
+    Test("Audio follows default output changes and ignores callbacks from retired sessions", () => {
+        string current = "speakers";
+        var sessions = new List<FakeLoopbackSession>();
+        using var audio = new AudioCapture(() => current, id => {
+            var session = new FakeLoopbackSession(id); sessions.Add(session); return session;
+        }, startTimer: false);
+        audio.PollDevice(); sessions[0].SendSamples();
+        using (var json = JsonDocument.Parse(audio.SnapshotJson()))
+            Check(json.RootElement.GetProperty("peak").GetDouble() > 0, "Initial capture did not publish");
+        audio.PollDevice(); Check(sessions.Count == 1, "Unchanged output restarted capture");
+        current = "headphones"; audio.PollDevice();
+        Check(sessions.Count == 2 && sessions[0].Disposed, "Old output was not replaced and disposed");
+        sessions[0].Stop(); sessions[0].SendSamples();
+        using (var json = JsonDocument.Parse(audio.SnapshotJson())) {
+            Check(json.RootElement.GetProperty("ok").GetBoolean(), "Old stop callback invalidated new capture");
+            Check(json.RootElement.GetProperty("device").GetString() == "headphones", "Wrong output captured");
+            Check(json.RootElement.GetProperty("peak").GetDouble() == 0, "Old samples survived device switch");
+        }
+        sessions[1].SendSamples();
+        using (var json = JsonDocument.Parse(audio.SnapshotJson()))
+            Check(json.RootElement.GetProperty("peak").GetDouble() > 0, "Replacement capture did not publish");
+        audio.Dispose(); audio.PollDevice(); sessions[1].SendSamples();
+        Check(sessions.Count == 2 && sessions[1].Disposed, "Disposal allowed another capture");
+    });
+    Test("Audio retries failed starts, stopped streams, and unavailable endpoints", () => {
+        bool unavailable = false; int opened = 0; FakeLoopbackSession latest = null;
+        using var audio = new AudioCapture(() => unavailable ? throw new InvalidOperationException("No output") : "speakers",
+            id => latest = new FakeLoopbackSession(id) { FailStart = ++opened == 1 }, startTimer: false);
+        audio.PollDevice(); Check(latest.Disposed, "Failed start leaked capture");
+        audio.PollDevice(); Check(opened == 2 && !latest.Disposed, "Failed start was not retried");
+        latest.Stop(); audio.PollDevice(); Check(opened == 3, "Stopped stream was not restarted");
+        unavailable = true; audio.PollDevice(); Check(latest.Disposed, "Unavailable output retained capture");
+        unavailable = false; audio.PollDevice(); Check(opened == 4, "Output recovery did not resume capture");
+    });
+    Test("Feed disposal immediately releases its fallback port", () => {
+        using var occupied = new TcpListener(IPAddress.Loopback, 0);
+        occupied.Start(); int requested = ((IPEndPoint)occupied.LocalEndpoint).Port;
+        using var server = new FeedServer(requested);
+        server.Start();
+        int fallback = server.Port;
+        Check(fallback != requested, "Fallback was not selected");
+        server.Dispose();
+        using var replacement = new TcpListener(IPAddress.Loopback, fallback);
+        replacement.Start();
+    });
     Test("Process drains stderr without deadlock and rejects failed exits", () => {
         var output = BoundedProcess.Run(fixtureExe, fixturePrefix + "--fixture pipes", 5000);
         Check(output?.Trim() == "42, 55, 100, 200", "Concurrent output was not read");
@@ -125,3 +173,23 @@ try {
 } finally { Directory.Delete(tempRoot, recursive: true); }
 Console.WriteLine($"{(failures == 0 ? "All tests passed" : failures + " tests failed")}");
 return failures == 0 ? 0 : 1;
+
+internal sealed class FakeLoopbackSession(string name) : ILoopbackSession
+{
+    public string DeviceName => name;
+    public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(48000, 1);
+    public event EventHandler<WaveInEventArgs> DataAvailable;
+    public event EventHandler<StoppedEventArgs> RecordingStopped;
+    public bool Disposed { get; private set; }
+    public bool FailStart { get; init; }
+    public void StartRecording() { if (FailStart) throw new InvalidOperationException("Start failed"); }
+    public void Dispose() => Disposed = true;
+    public void Stop() => RecordingStopped?.Invoke(this, new StoppedEventArgs());
+    public void SendSamples()
+    {
+        var samples = new float[2048]; Array.Fill(samples, .5f);
+        var buffer = new byte[samples.Length * sizeof(float)];
+        Buffer.BlockCopy(samples, 0, buffer, 0, buffer.Length);
+        DataAvailable?.Invoke(this, new WaveInEventArgs(buffer, buffer.Length));
+    }
+}
