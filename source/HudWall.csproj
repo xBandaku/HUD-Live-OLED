@@ -23,7 +23,7 @@
   <ItemGroup>
     <EmbeddedResource Include="hud.ico" LogicalName="HudWall.hud.ico" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
-    <PackageReference Include="NAudio" Version="2.4.0" />
+    <PackageReference Include="NAudio" Version="3.3.0" />
   </ItemGroup>
 
   <ItemGroup>
