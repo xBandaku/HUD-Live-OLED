@@ -1,0 +1,15 @@
+JARVIS voice v20
+
+Headphones: JARVIS automatically uses a headphone/headset selected as Windows communications output, otherwise the default media output. Speak naturally without saying Jarvis. Speak again to interrupt a response. This mode has no conversation timeout.
+Speakers: say Jarvis followed by a request. Follow-ups last 90 seconds. JARVIS suppresses microphone commands during speaker playback to avoid hearing itself.
+The tray JARVIS voice menu shows the listening mode. Listen for Jarvis commands can turn microphone recognition off. Windows microphone settings opens microphone privacy settings; choose your microphone in Windows Sound settings.
+British neural George is selected automatically. If unavailable, Windows speech is used and continuous mode is suspended until an output change/restart to avoid speaker echo.
+VEYDR is spoken as Vader; the HUD spelling stays unchanged.
+Windows speech recognition remains the recognizer. Recognition quality depends on the selected Windows default microphone, microphone volume and background noise. No raw microphone recording is saved by this app.
+
+Basic commands
+Close Notepad / Close Chrome (normal close only; save prompts may remain).
+Which apps are running?
+What's the weather in New York?
+What's the weather? (asks for a city if none saved).
+Online weather uses Open-Meteo and follows the tray Celsius/Fahrenheit choice. The city is saved in voice settings; ask for weather in another city to change it.

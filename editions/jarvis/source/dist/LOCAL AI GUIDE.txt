@@ -1,0 +1,67 @@
+JARVIS v19 - LOCAL AI AND NEURAL SPEECH
+
+On this PC, Ollama, Qwen3 8B and the Kokoro speech model are installed.
+On another PC, run Setup Local AI.cmd once, then Start Wallpaper.cmd.
+Setup needs internet access to download Ollama, approximately 5.2 GB for Qwen3
+8B, and approximately 326 MB for the neural voice model. Models are not in the ZIP.
+
+Talk naturally: Jarvis, explain how black holes work.
+Follow-ups can omit Jarvis for 90 seconds after a reply. Say stop conversation
+to end follow-ups, or stop listening to turn the microphone listener off.
+The tray voice menu can re-enable it. Windows English speech support is required.
+
+Tray > AI conversation > Open conversation provides typed chat, full replies,
+tool activity, source links, Stop response, and New conversation.
+AI provider settings defaults to Local Ollama with qwen3:8b.
+OpenAI is optional; it still needs its own key and API billing if selected.
+
+LOCAL OPERATION
+Language-model requests go to http://127.0.0.1:11434. No OpenAI key or balance is
+needed in local mode. Ollama can be started automatically when a request needs it.
+The model uses GPU/RAM and releases its loaded GPU allocation after idle timeout.
+First load can take longer. Response speed depends on the PC and request.
+Conversation context stays in memory, limited to six recent exchanges and a size
+limit. New conversation or restarting clears it. Audio recordings are not saved.
+
+WEB SEARCH
+Web search sends the search query to Bing and retrieves result titles, snippets
+and source links. It does not read full articles. It needs internet access and
+may be unavailable if the search provider blocks the request. Disable web search
+in AI provider settings for offline-only conversation and PC tools.
+Ordinary local conversation and requested file contents are not sent to OpenAI.
+
+PC TOOLS
+Ask JARVIS to find files/folders, read requested text/code documents, or open apps,
+files, folders and websites. It discovers apps through your configured aliases,
+Start menu shortcuts and Windows App Paths. Existing local app commands remain.
+Each filename search is limited to 10 seconds, 250000 entries or 40 results,
+with partial-result reporting. Windows file permissions apply. Protected paths,
+directory links and obvious credential files are skipped. Text reads return
+at most 16000 characters. PDF/Office contents are not extracted, but those files
+can be found and opened. Scripts, installers, destructive actions, arbitrary
+commands and administrator operations are not AI tools in this release.
+
+LESS ROBOTIC SPEECH
+Tray > JARVIS voice > Response voice:
+- British neural - George (default)
+- British neural - Lewis
+- British neural - Daniel
+- Windows voices, retained as an option and fallback
+Speech speed offers Measured 90%, Natural 100%, and Brisk 110%.
+The neural voices run locally on the CPU. They are distinct synthetic voices
+with a British assistant style, not an actor voice clone.
+The speech model is stored at %LOCALAPPDATA%\HudWall\Models\kokoro.onnx.
+Windows voice fallback is used if the model is missing or neural synthesis fails.
+Use Test spoken response in the voice tray menu to preview the selected voice.
+
+STARTUP AND MONITORS
+Automatic Windows startup and existing appearance controls remain available.
+Span HUD across all monitors combines the desktop into one stationary HUD.
+The primary display supplies theme/transparency; any monitor pause rule pauses
+the shared HUD. Turn spanning off to restore per-monitor settings.
+
+VERIFIED ON THE CURRENT PC
+Qwen3 8B ran with GPU acceleration on the RTX 5070 Ti. Live checks covered file
+search/read, follow-up context, web sources, a controlled app launch, and British
+neural speech generation. Other PC performance and model availability may differ.
+See CHANGELOG.md for all releases and licenses for third-party notices.

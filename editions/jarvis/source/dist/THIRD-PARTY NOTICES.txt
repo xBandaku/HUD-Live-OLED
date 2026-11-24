@@ -1,0 +1,20 @@
+KokoroSharp and MisakiSharp: MIT; license texts are in licenses.
+https://github.com/Lyrcaxis/KokoroSharp
+https://github.com/Lyrcaxis/MisakiSharp
+
+Kokoro 82M model and bundled British voice arrays: Apache License 2.0.
+Model/voice source: https://huggingface.co/hexgrad/Kokoro-82M
+Neural model download: https://github.com/Lyrcaxis/KokoroSharpBinaries
+The model weight file is downloaded separately, not included in this ZIP.
+
+Microsoft ONNX Runtime: MIT; license text is in licenses.
+https://github.com/microsoft/onnxruntime
+
+Ollama and Qwen3 are separate installations/downloads, not bundled here.
+https://github.com/ollama/ollama
+https://ollama.com/library/qwen3:8b
+
+This project integrates these components for local desktop conversation/speech.
+The synthetic voice is not a recording or clone of an Avengers performer.
+
+God's Eye View v0.2.1, Copyright (c) 2026 Bilawal Sidhu, MIT License. Source and license are included under gods-eye/. Node.js and npm dependency licenses are included with the runtime.

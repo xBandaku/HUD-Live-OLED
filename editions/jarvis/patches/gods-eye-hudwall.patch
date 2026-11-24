@@ -1,0 +1,18 @@
+--- a/src/app/embed.js
++++ b/src/app/embed.js
+@@ -258,6 +258,15 @@
+   // Views apply one at a time, in the order they arrive.
+   let queue = ready;
+   const onMessage = (event) => {
++    // HudWall extension: only the owning trusted desktop page can control rendering.
++    if(event.source===peer && event.origin==='https://hud.local' && event.data?.type==='hudwall:playback') {
++      viewer.targetFrameRate=Math.max(10,Math.min(60,Number(event.data.fps)||30));
++      viewer.useDefaultRenderLoop=!event.data.paused;
++      if(!event.data.paused)viewer.scene.requestRender();
++      post({type:"hudwall:playback-applied",paused:!viewer.useDefaultRenderLoop,fps:viewer.targetFrameRate},event.origin);
++      return;
++    }
++
+     if (event.source !== peer || event.data?.type !== EMBED_VIEW_MESSAGE)
+       return;
+     const { id = null } = event.data;

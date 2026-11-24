@@ -1,0 +1,64 @@
+<Window x:Class="DeskNest.Views.RulesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DeskNest – Auto-sort rules" Width="900" Height="520" MinWidth="700" MinHeight="360"
+        WindowStartupLocation="CenterScreen" FontFamily="{StaticResource UiFont}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock TextWrapping="Wrap" Margin="0,0,0,10" Foreground="#FF444444">
+            New items that appear on your desktop are moved into a folder by the first enabled rule that matches.
+            Point a rule at a folder portal's folder to have it show up there. Rules match on the file name.
+        </TextBlock>
+
+        <WrapPanel Grid.Row="1" Margin="0,0,0,10">
+            <CheckBox x:Name="EnabledBox" Content="Auto-sort new desktop items" VerticalAlignment="Center" Margin="0,0,24,0" />
+            <TextBlock Text="Wait" VerticalAlignment="Center" />
+            <TextBox x:Name="SettleBox" Width="40" Margin="6,0" VerticalAlignment="Center" TextAlignment="Center" />
+            <TextBlock Text="seconds after an item appears before moving it" VerticalAlignment="Center" />
+        </WrapPanel>
+
+        <DataGrid x:Name="Grid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False"
+                  CanUserReorderColumns="False" SelectionMode="Single" HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FFE5E5E5" RowHeight="30">
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="On" Binding="{Binding Enabled, UpdateSourceTrigger=PropertyChanged}" Width="40" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="140" />
+                <DataGridComboBoxColumn x:Name="MatchColumn" Header="Match" SelectedItemBinding="{Binding Match}" Width="110" />
+                <DataGridTextColumn Header="Pattern" Binding="{Binding Pattern}" Width="180" />
+                <DataGridTemplateColumn Header="Move to folder" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="…" Width="26" Margin="4,2,2,2" Click="OnBrowseTarget"
+                                        ToolTip="Choose a folder or a portal" />
+                                <TextBox Text="{Binding TargetFolder, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0"
+                                         VerticalContentAlignment="Center" Background="Transparent" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridCheckBoxColumn Header="Folders too" Binding="{Binding IncludeFolders, UpdateSourceTrigger=PropertyChanged}" Width="80" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <DockPanel Grid.Row="3" Margin="0,12,0,0" LastChildFill="False">
+            <Button Content="Add rule" Padding="12,4" Margin="0,0,6,0" Click="OnAdd" />
+            <Button Content="Add common rules" Padding="12,4" Margin="0,0,6,0" Click="OnAddPresets"
+                    ToolTip="Images, documents, archives, installers and videos, each into a folder under Documents\Desktop sorted" />
+            <Button Content="Remove" Padding="12,4" Margin="0,0,6,0" Click="OnRemove" />
+            <Button Content="▲" Width="30" Margin="0,0,2,0" Click="OnMoveUp" ToolTip="Higher priority" />
+            <Button Content="▼" Width="30" Margin="0,0,6,0" Click="OnMoveDown" ToolTip="Lower priority" />
+            <TextBlock x:Name="Status" VerticalAlignment="Center" Margin="8,0" Foreground="#FFB00020" />
+            <Button DockPanel.Dock="Right" Content="Cancel" Padding="16,4" IsCancel="True" />
+            <Button DockPanel.Dock="Right" Content="Save" Padding="16,4" Margin="0,0,6,0" IsDefault="True" Click="OnSave" />
+            <Button DockPanel.Dock="Right" Content="Sort desktop now" Padding="12,4" Margin="0,0,18,0" Click="OnRunNow"
+                    ToolTip="Save, then apply the rules to everything currently on the desktop" />
+        </DockPanel>
+    </Grid>
+</Window>

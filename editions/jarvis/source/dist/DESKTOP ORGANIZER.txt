@@ -1,0 +1,54 @@
+DESKTOP ORGANIZER - v31
+
+HUD Live now includes the DeskNest desktop organizer. It runs inside HudWall.exe:
+one tray icon, one Windows startup entry, one Exit.
+
+WHAT IT DOES
+- Folder portals: a frame on the desktop showing a live view of any folder.
+  Double-click to open, drag items out, drop files in to move them (Ctrl = copy),
+  Del sends to the Recycle Bin, F2 renames, Ctrl+F filters.
+- Shortcut fences: desktop icons dropped on a fence move off the desktop into the
+  fence. "Move back to desktop" or deleting the fence returns them.
+- Tabbed launcher: Ctrl+Alt+Space (or left-click the tray icon). Type to search
+  all tabs, Enter launches, drop apps on a tab name to file them there.
+- Auto-sort rules: new desktop items are moved into folders by extension, name or
+  regex. "Add common rules" sets up Images, Documents, Archives, Installers...
+
+HUD THEME
+Frames and the launcher are drawn as JARVIS panels: square corners, accent border,
+corner brackets and Consolas headings. Their colors follow the HUD theme of the
+monitor each frame sits on (Monitors > display > Theme), and change as soon as the
+theme changes. A spanning HUD uses the primary display's theme everywhere.
+Right-click a frame title > Color > HUD theme to follow the HUD; the other colors
+are fixed tints that keep the HUD border and brackets.
+
+TRAY > DESKTOP ORGANIZER
+Open launcher, New folder portal, New shortcut fence, Show frames,
+Auto-sort new desktop items, Edit auto-sort rules, Sort desktop now,
+Show desktop icons, Bring frames back on screen, Open organizer settings folder,
+Run desktop organizer (turn the whole organizer off or on).
+
+VOICE (say Jarvis first)
+- Jarvis open launcher / close launcher
+- Jarvis sort desktop          (also: tidy up my desktop, clean up desktop)
+- Jarvis auto sort on / auto sort off
+- Jarvis edit sort rules
+- Jarvis show frames / hide frames      (fences and portals too)
+- Jarvis bring frames back
+- Jarvis new fence
+- Jarvis new portal            (asks for a folder)
+- Jarvis new portal for downloads / documents / pictures / music / videos / desktop
+- Jarvis show desktop icons / hide desktop icons
+
+MOVING FROM THE STANDALONE DESKNEST
+Your existing layout, launcher tabs and rules are kept: they stay in
+%AppData%\DeskNest\config.json. On first start HUD Live removes the standalone
+DeskNest's own startup entry. If the standalone DeskNest is still running, HUD Live
+waits and takes over as soon as you exit it from its tray icon. Frames that used
+DeskNest's stock Graphite or Midnight colors switch to the HUD theme; custom colors
+are kept. The standalone DeskNest.exe can then be uninstalled or deleted.
+
+FILES
+Layout and settings: %AppData%\DeskNest\config.json (edit "Hotkey" there while
+HUD Live is closed). Organizer log: %AppData%\DeskNest\desknest.log.
+On/off switch: assets\organizer.json.

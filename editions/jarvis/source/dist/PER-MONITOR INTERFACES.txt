@@ -1,0 +1,10 @@
+Independent interfaces ? v24
+
+Right-click tray icon > Monitors > [display] > Interface style.
+Choose J.A.R.V.I.S. reactor, S.H.I.E.L.D. operations, or Use global interface.
+Choices are saved by display device ID. The monitor menu labels the Windows primary screen.
+
+Choosing an explicit display interface switches to separate complete HUDs, allowing JARVIS on one screen and SHIELD on another. Voice, AI and conversation remain shared. Each display retains its own colors, transparency and pause settings.
+
+HUD appearance > Interface style controls the default for monitors set to Use global interface.
+Span HUD across all monitors remains available. A single spanning HUD uses its primary monitor's interface selection.

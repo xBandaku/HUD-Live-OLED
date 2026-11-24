@@ -1,0 +1,40 @@
+CINEMATIC MODE - v32
+
+BOOT SEQUENCE
+Every time HUD Live starts, each display boots in about four seconds:
+- J.A.R.V.I.S. displays: the arc reactor ignites with a shockwave and spins up,
+  rings and clock come into focus, a light sweep crosses the screen, headings
+  decode, panels materialize and REACTOR OUTPUT counts to 100%.
+- S.H.I.E.L.D. displays: the insignia authenticates in the middle of the board
+  (AUTHENTICATING... ACCESS GRANTED), countries light up west to east as the scan
+  crosses the map, the reference cities ping in and GRID CALIBRATION reaches 100%.
+- A boot console types this PC's real processor, graphics, memory, storage,
+  telemetry, voice and assistant status. The SHIELD console stays factual too:
+  the map is an offline schematic and nothing is tracked.
+Tray > HUD appearance > Boot sequence at startup turns it off.
+Tray > HUD appearance > Play boot sequence runs it again.
+It plays only in Full animation mode. Reduced, Off, a paused HUD and the Windows
+reduced-motion setting skip straight to the finished HUD.
+
+SPOKEN GREETING
+When the boot reaches "online", JARVIS greets you aloud with the time, today's
+date, the weather (when web search is on and a weather city is saved) and a
+system check: processor and memory load, plus anything that needs attention
+(a drive over 90% full, memory over 90%, a hot GPU, a low battery).
+If the primary display uses S.H.I.E.L.D., the greeting welcomes you as Agent.
+The greeting is skipped when a fullscreen game or app has paused the HUD.
+Tray > JARVIS voice > Spoken greeting at startup turns it off.
+
+VOICE-REACTIVE DISPLAYS
+While JARVIS speaks, the reactor moves with his real voice: radial voice bars
+ripple around the rings and the core glows. HUD Live measures the loudness of
+each spoken reply as it plays, so the motion follows the words.
+On S.H.I.E.L.D. displays a comms trace runs along the bottom of the map and the
+insignia glows in time with the voice.
+The voice visuals follow the FPS limit, pause rules and the Reactor rings
+setting, and are off in Reduced and Off animation modes.
+
+VOICE (say Jarvis first)
+- Jarvis power up / boot sequence / wake up   replays the boot, then greets you
+- Jarvis good morning / good afternoon / good evening / I'm home
+- Jarvis status report                        time, weather and system check

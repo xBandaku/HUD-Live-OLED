@@ -1,0 +1,28 @@
+.agency-seal{display:none;}
+.core-label b{font:inherit;}
+.unit[data-interface="SHIELD"]{--text:#eef5fc;--dim:#b0c1d3;--dim-2:#7f99b3;}
+.unit[data-interface="SHIELD"] .bg{background:radial-gradient(ellipse at 45% 45%,#122940 0%,#071322 62%,#030b14 100%);}
+.unit[data-interface="SHIELD"] .panel{clip-path:none;border:1px solid #799bb459;box-shadow:inset 0 3px #d3e7fa55;background:linear-gradient(180deg,#13263ee8,#071423ed);border-radius:2px;}
+.unit[data-interface="SHIELD"] .panel::before{width:100%;height:1px;background:#d3e7fa99;}
+.unit[data-interface="SHIELD"] .panel h2{color:#e0eaf4;font-weight:bold;letter-spacing:.2em;}
+.unit[data-interface="SHIELD"] .panel h2 em{color:#ffc27a;}
+.unit[data-interface="SHIELD"] .brand h1{letter-spacing:.28em;font-weight:650;}
+.unit[data-interface="SHIELD"] .brand .mark{border-radius:50%;clip-path:none;border-color:#d8e8f6;box-shadow:inset 0 0 0 6px #11283d,inset 0 0 0 8px #c7d9e9;background:#b5d4ef;}
+.unit[data-interface="SHIELD"] .agency-seal{display:block;position:absolute;width:105px;height:105px;top:100px;left:50%;transform:translateX(-50%);fill:none;stroke:#d0e0f0;stroke-width:1;z-index:3;opacity:.8;}
+.unit[data-interface="SHIELD"] .agency-seal .eagle{fill:#d0e0f0;stroke:none;}
+.unit[data-interface="SHIELD"] .clock{padding-top:65px!important;}
+.unit[data-interface="SHIELD"] .clock .time{font-weight:400;font-size:96px;letter-spacing:-.03em;}
+.unit[data-interface="SHIELD"] .reactor{opacity:.45;stroke:#a5c4df;}
+.unit[data-interface="SHIELD"] .reactor-lattice .heavy{stroke-dasharray:3 12;stroke-width:10;}
+.unit[data-interface="SHIELD"] .core-reticle{border:1px solid #d3e7fa55;background:repeating-linear-gradient(0deg,transparent 0 27px,#b5d4ef0a 27px 28px),repeating-linear-gradient(90deg,transparent 0 27px,#b5d4ef0a 27px 28px);}
+.unit[data-interface="SHIELD"] .core-label{letter-spacing:.25em;font-size:23px;}
+.unit[data-interface="SHIELD"] .chip{border-left-color:#7b9bb9;background:#10253bcc;}
+.unit[data-interface="SHIELD"] .history-card,.unit[data-interface="SHIELD"] .voice-console{background:#071322ed;border-color:#7b9bb970;}
+.unit[data-interface="SHIELD"] .voice-flow .active{color:#ffc27a;}
+.unit[data-interface="SHIELD"] .hud-bezel::after{content:"S.H.I.E.L.D. / OPERATIONS INTERFACE";}
+html[data-show-reactor="false"] .agency-seal{display:none;}
+
+.brand-seal{display:none;}
+.unit[data-interface="SHIELD"] .agency-seal{mix-blend-mode:screen;opacity:1;}
+.unit[data-interface="SHIELD"] .brand .mark{background:none;border:0;box-shadow:none;clip-path:none;}
+.unit[data-interface="SHIELD"] .brand-seal{display:block;width:100%;height:100%;mix-blend-mode:screen;}

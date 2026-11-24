@@ -1,0 +1,75 @@
+<Window x:Class="DeskNest.Views.FrameWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False" ShowActivated="False" ResizeMode="CanResize"
+        MinWidth="140" MinHeight="32"
+        FontFamily="{StaticResource UiFont}" Foreground="{DynamicResource TextBrush}"
+        Title="DeskNest frame">
+    <WindowChrome.WindowChrome>
+        <WindowChrome x:Name="Chrome" CaptionHeight="0" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <!-- JARVIS panel: square corners, 35% accent border, accent-tinted gradient (set in code from the frame color) -->
+        <Border x:Name="Root" BorderThickness="1" BorderBrush="{DynamicResource FrameBorderBrush}"
+                AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Title bar: drag to move, double-click to roll up, right-click for the frame menu -->
+                <Grid x:Name="TitleBar" Background="#01000000" MouseLeftButtonDown="OnTitleMouseDown"
+                      MouseRightButtonUp="OnTitleRightClick">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="KindGlyph" Grid.Column="0" FontFamily="{StaticResource IconFont}" FontSize="12"
+                               Foreground="{DynamicResource HudAccentBrush}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                    <TextBlock x:Name="TitleText" Grid.Column="1" FontFamily="{StaticResource HudFont}" FontSize="12.5"
+                               Foreground="{DynamicResource HudAccent2Brush}"
+                               VerticalAlignment="Center" HorizontalAlignment="Left" TextTrimming="CharacterEllipsis" Margin="8,0" />
+                    <TextBox x:Name="FilterBox" Grid.Column="1" Style="{StaticResource DarkTextBox}" Margin="6,4"
+                             Visibility="Collapsed" TextChanged="OnFilterChanged" KeyDown="OnFilterKeyDown" />
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,4,0" x:Name="TitleButtons" Opacity="0">
+                        <Button Style="{StaticResource GlyphButton}" Content="&#xE721;" ToolTip="Filter (Ctrl+F)" Click="OnFilterButton" />
+                        <Button Style="{StaticResource GlyphButton}" Content="&#xE712;" ToolTip="Frame menu" Click="OnMenuButton" />
+                    </StackPanel>
+                    <!-- Rule under the heading, like the HUD's panel titles -->
+                    <Rectangle Grid.ColumnSpan="3" Height="1" VerticalAlignment="Bottom" Margin="8,0" Fill="{DynamicResource HudRuleBrush}" />
+                </Grid>
+
+                <Grid Grid.Row="1" x:Name="Body">
+                    <ListBox x:Name="Items" Style="{StaticResource TileListStyle}" Margin="4,4,2,6"
+                             ContextMenuOpening="OnItemsContextMenuOpening" KeyDown="OnItemsKeyDown">
+                        <ListBox.ContextMenu>
+                            <ContextMenu />
+                        </ListBox.ContextMenu>
+                    </ListBox>
+                    <StackPanel x:Name="EmptyHint" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
+                        <TextBlock x:Name="EmptyText" Foreground="{DynamicResource SubtleTextBrush}" TextAlignment="Center"
+                                   TextWrapping="Wrap" MaxWidth="240" />
+                    </StackPanel>
+                    <Button x:Name="ChooseFolderButton" Content="Choose folder…" Visibility="Collapsed"
+                            HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,14" Padding="10,3"
+                            Click="OnChooseFolder" />
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Corner brackets in the full accent color -->
+        <Grid IsHitTestVisible="False">
+            <Grid.Effect>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="0" Opacity="0.6" Color="{DynamicResource HudAccentColor}" />
+            </Grid.Effect>
+            <Path Style="{StaticResource HudBracket}" HorizontalAlignment="Left" VerticalAlignment="Top" Data="M0,12 L0,0 12,0" />
+            <Path Style="{StaticResource HudBracket}" HorizontalAlignment="Right" VerticalAlignment="Top" Data="M0,0 L12,0 12,12" />
+            <Path Style="{StaticResource HudBracket}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Data="M0,0 L0,12 12,12" />
+            <Path Style="{StaticResource HudBracket}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Data="M12,0 L12,12 0,12" />
+        </Grid>
+    </Grid>
+</Window>

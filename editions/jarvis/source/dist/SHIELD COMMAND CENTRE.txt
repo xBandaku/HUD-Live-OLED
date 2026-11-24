@@ -1,0 +1,10 @@
+S.H.I.E.L.D. command centre ? v26
+
+The tactical display now uses actual Natural Earth 1:50m geography, with detailed coastlines and country boundaries, a WGS84 coordinate grid and correctly positioned reference cities.
+
+Select a map region through Tray > HUD appearance > SHIELD map view > World, North America, Europe or Asia-Pacific. The choice is saved and works offline. All geometry is bundled; no map API key is needed.
+
+Reference city markers identify geographic locations. They do not represent the PC's physical location or device tracking. Live assistant, voice and network readouts remain below the map.
+
+Map data: https://www.naturalearthdata.com/ (public domain).
+Detailed source URL and SHA-256 are in assets/map-source.txt.

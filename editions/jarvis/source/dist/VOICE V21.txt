@@ -1,0 +1,11 @@
+JARVIS voice recognition v21
+
+Whisper base.en now handles speech recognition locally. Your microphone audio stays in memory and is not written to recording files or uploaded for transcription. The recognized question goes to your selected AI provider (local Ollama by default).
+
+Use the selected Windows communications microphone. JARVIS follows input changes automatically. The JARVIS voice tray menu now shows microphone name, signal activity, recognition state and Last heard. Restart microphone recognition is available there if needed.
+
+Headphones: speak naturally without a wake word. Speakers: say Jarvis or Hey Jarvis. Pause allowance is 850ms; a longer silence ends the phrase. A 400ms pre-roll preserves initial sounds. Very long phrases are segmented after 22 seconds.
+
+If Whisper is missing or cannot load, Windows speech recognition remains the fallback. Run Setup Local AI.cmd on a new PC to install the local models, then restart JARVIS. The setup downloads and verifies the Whisper model (148 MB), British voice model and local conversation model.
+
+Speech and command tests passed with normal and quieter/noisy generated voice recordings. This does not guarantee perfect recognition for every accent or room. Use Last heard to see whether a failure was recognition or command handling.

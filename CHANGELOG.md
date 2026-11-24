@@ -1,3 +1,21 @@
+## JARVIS / SHIELD v41.0.2 - Taskbar patch (October 26, 2026)
+
+- Add taskbar persistence, physical bottom-edge alignment, per-monitor fullscreen handling, and retries after transient Explorer/display failures.
+- Preserve intentional empty pin lists and recover semantically invalid audio settings using backup/default values.
+- Extend automated coverage to 30 scenarios and document update steps, taskbar recovery, and live-validation limits. Earlier 41.0.1 fixes remain included; OLED remains 16.1.0.
+
+## JARVIS / SHIELD v41.0.1 - Recovery patch (October 26, 2026)
+
+- Fix default audio output switching, persistent launcher attachment retries, and fallback feed-port cleanup in the JARVIS edition.
+- Add nine JARVIS recovery checks and a full JARVIS build to Windows CI; retain all 13 OLED regression checks.
+- Document separate edition downloads, requirements, update/back-up steps, and validation limits. OLED remains at 16.1.0.
+
+## JARVIS / SHIELD v41 - Source edition
+
+- Add the v41 JARVIS / SHIELD source edition under `editions/jarvis/` without replacing the OLED application or its release scripts.
+- Include voice/conversation, organizer, optional taskbar, full-desktop bounds recovery and United States / World God's Eye focus controls.
+- Include clean defaults, custom icons, build guides, pinned upstream bootstrap/patch, and the complete edition history. Exclude personal settings, API keys, model weights and generated runtimes.
+
 # HUD Live — Standalone Changelog
 
 **Latest changes: October 25, 2026**
