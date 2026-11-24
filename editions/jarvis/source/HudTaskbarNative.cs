@@ -13,6 +13,8 @@ internal static class TaskbarNative {
  [DllImport("user32.dll")]internal static extern bool IsWindowVisible(IntPtr window);
  [DllImport("user32.dll")]internal static extern bool IsWindow(IntPtr window);
  [DllImport("user32.dll")]internal static extern bool IsIconic(IntPtr window);
+ [DllImport("user32.dll")]internal static extern bool IsZoomed(IntPtr window);
+ [DllImport("user32.dll")]internal static extern bool SetWindowPos(IntPtr window,IntPtr after,int x,int y,int width,int height,uint flags);
  [DllImport("user32.dll")]internal static extern bool ShowWindow(IntPtr window,int command);
  [DllImport("user32.dll")]internal static extern bool SetForegroundWindow(IntPtr window);
  [DllImport("user32.dll")]internal static extern bool AttachThreadInput(uint a,uint b,bool attach);
@@ -22,6 +24,7 @@ internal static class TaskbarNative {
  [DllImport("user32.dll")]internal static extern bool GetWindowRect(IntPtr window,out Rect rect);
  [DllImport("user32.dll")]internal static extern uint GetWindowThreadProcessId(IntPtr window,out uint process);
  [DllImport("user32.dll")]internal static extern IntPtr GetWindow(IntPtr window,uint command);
+ [DllImport("user32.dll")]private static extern IntPtr GetTopWindow(IntPtr parent);
  [DllImport("user32.dll",EntryPoint="GetWindowLongPtrW")]internal static extern IntPtr GetWindowLong(IntPtr window,int index);
  [DllImport("user32.dll",EntryPoint="GetClassLongPtrW")]internal static extern IntPtr GetClassLong(IntPtr window,int index);
  [DllImport("user32.dll",CharSet=CharSet.Unicode)]internal static extern int GetWindowText(IntPtr window,StringBuilder text,int count);
@@ -47,6 +50,25 @@ internal static class TaskbarNative {
    var text=new StringBuilder(512);GetWindowText(w,text,text.Capacity);if(text.Length==0||(pid==Environment.ProcessId&&text.ToString()=="HUD Live")||Class(w) is "Progman" or "WorkerW" or "Shell_TrayWnd" or "Shell_SecondaryTrayWnd")return true;
    list.Add(new(w,pid,text.ToString()));return true;
   },IntPtr.Zero);return list;
+ }
+ internal static List<TaskbarWindowState> VisibilityWindows(){
+  var result=new List<TaskbarWindowState>();var seen=new HashSet<IntPtr>();
+  var foreground=GetForegroundWindow();var window=GetTopWindow(IntPtr.Zero);
+  // Bound traversal because windows can be destroyed or reordered while enumerating.
+  for(int count=0;window!=IntPtr.Zero&&count<4096&&seen.Add(window);count++){
+   var current=window;window=GetWindow(current,2); // GW_HWNDNEXT: descending z-order
+   if(!IsWindowVisible(current)||IsIconic(current))continue;
+   if(current!=foreground&&(GetWindow(current,4)!=IntPtr.Zero||(GetWindowLong(current,-20).ToInt64()&0x80)!=0))continue;
+   if(DwmGetWindowAttribute(current,14,out int cloaked,4)==0&&cloaked!=0)continue;
+   if(!GetWindowRect(current,out var rect)||rect.Right<=rect.Left||rect.Bottom<=rect.Top)continue;
+   GetWindowThreadProcessId(current,out uint pid);
+   bool caption=(GetWindowLong(current,-16).ToInt64()&0x00C00000)==0x00C00000;
+   bool maximized=IsZoomed(current)&&caption;
+   var bounds=System.Drawing.Rectangle.FromLTRB(rect.Left,rect.Top,rect.Right,rect.Bottom);
+   if(maximized)bounds=TaskbarVisibility.VisibleBounds(bounds,System.Windows.Forms.Screen.FromHandle(current).Bounds,true);
+   result.Add(new(bounds,pid==Environment.ProcessId,Class(current),maximized));
+  }
+  return result;
  }
  internal static void Activate(IntPtr window){if(!IsWindow(window))return;if(GetForegroundWindow()==window&&!IsIconic(window)){ShowWindow(window,6);return;}if(IsIconic(window))ShowWindow(window,9);var popup=GetLastActivePopup(window);var target=popup!=IntPtr.Zero&&IsWindowVisible(popup)?popup:window;if(!SetForegroundWindow(target)){uint current=GetCurrentThreadId(),foreground=GetWindowThreadProcessId(GetForegroundWindow(),out _);if(foreground!=0&&foreground!=current&&AttachThreadInput(current,foreground,true))try{SetForegroundWindow(target);}finally{AttachThreadInput(current,foreground,false);}}}
 }

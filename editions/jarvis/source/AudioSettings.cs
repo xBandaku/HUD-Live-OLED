@@ -8,12 +8,20 @@ internal static class AudioSettings
 {
     internal static int Load(string assets)
     {
-        try
+        string path = Path.Combine(assets, "audio.json");
+        foreach (string candidate in new[] { path, path + ".bak" })
         {
-            using var json=JsonDocument.Parse(SettingsStorage.Read(Path.Combine(assets,"audio.json")));
-            return json.RootElement.TryGetProperty("sensitivity",out var value) && value.TryGetInt32(out int percent) ? Math.Clamp(percent,0,300) : 100;
+            try
+            {
+                using var json = JsonDocument.Parse(File.ReadAllText(candidate));
+                if (json.RootElement.ValueKind != JsonValueKind.Object) continue;
+                if (!json.RootElement.TryGetProperty("sensitivity", out var value)) return 100;
+                if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int percent))
+                    return Math.Clamp(percent, 0, 300);
+            }
+            catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException) { }
         }
-        catch(Exception ex) when(ex is IOException || ex is JsonException) {return 100;}
+        return 100;
     }
     internal static void Save(string assets,int sensitivity)
     {

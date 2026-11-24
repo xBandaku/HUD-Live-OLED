@@ -11,6 +11,11 @@
     <!-- Compile the actual JARVIS recovery code without starting voice, AI or desktop services. -->
     <Compile Include="../source/Audio.cs" Link="Audio.cs" />
     <Compile Include="../source/FeedServer.cs" Link="FeedServer.cs" />
+    <Compile Include="../source/TaskbarPersistence.cs" Link="TaskbarPersistence.cs" />
+    <Compile Include="../source/HudTaskbarSettings.cs" Link="HudTaskbarSettings.cs" />
+    <Compile Include="../source/AudioSettings.cs" Link="AudioSettings.cs" />
+    <Compile Include="../source/SettingsStorage.cs" Link="SettingsStorage.cs" />
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <None Include="../source/dist/assets/taskbar.json" Link="taskbar-defaults.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

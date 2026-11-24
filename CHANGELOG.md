@@ -1,3 +1,9 @@
+## JARVIS / SHIELD v41.0.2 - Taskbar patch (October 26, 2026)
+
+- Add taskbar persistence, physical bottom-edge alignment, per-monitor fullscreen handling, and retries after transient Explorer/display failures.
+- Preserve intentional empty pin lists and recover semantically invalid audio settings using backup/default values.
+- Extend automated coverage to 30 scenarios and document update steps, taskbar recovery, and live-validation limits. Earlier 41.0.1 fixes remain included; OLED remains 16.1.0.
+
 ## JARVIS / SHIELD v41.0.1 - Recovery patch (October 26, 2026)
 
 - Fix default audio output switching, persistent launcher attachment retries, and fallback feed-port cleanup in the JARVIS edition.
